@@ -68,7 +68,13 @@ module.exports = class botBans extends SlashCommand {
               .setTitle(`${titleText}`)
               .setColor(colours.DEFAULT)
               .setDescription(
-                `• Average session time: ${updatedUserData}\n• Total time spent: ${totalTime}\n• Number of sessions: ${userData.numberOfStarts}`
+                `• Average session time: ${updatedUserData}\n• Total time spent: ${totalTime}\n• Number of sessions: ${
+                  userData.numberOfStarts
+                }\n\n**Last Session Details**\n• Session time: ${msToTime(
+                  userData.lastSessionTime * 1000
+                )}\n• Session date: <t:${Math.round(
+                  userData.lastSessionDate / 1000
+                )}:F>`
               )
               .setFooter({
                 text: `Best of luck!`
