@@ -60,13 +60,13 @@ module.exports = (client) => {
         let percentageDisplay;
 
         if (percentageDiff < 1)
-          percentageDisplay = `This session was ${Math.round(
+          percentageDisplay = `This session was ${(
             percentageDiff * 100
-          )}% your average session time.`;
+          ).toFixed(2)}% your average session time.`;
         else if (percentageDiff > 1)
-          percentageDisplay = `This session was ${Math.round(
+          percentageDisplay = `This session was ${(
             percentageDisplay * 100
-          )} your average session time, good job.`;
+          ).toFixed(2)} your average session time, good job.`;
         else if (percentageDisplay === 1)
           percentageDisplay = `This session was exactly your average session time, probability of that happening is very low, wow.`;
 
