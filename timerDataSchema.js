@@ -11,7 +11,9 @@ const TimerSchema = new Schema(
     timeSpent: {
       type: Number,
       default: 0
-    }
+    },
+    lastSessionTime: Number,
+    lastSessionDate: Date
   },
   {
     collection: "Timer data"
