@@ -88,7 +88,9 @@ module.exports = (client) => {
         return timerData.updateOne({
           intiationTime: null,
           numberOfStarts: timerData.numberOfStarts + 1,
-          timeSpent: Math.round(timerData.timeSpent + timeElapsed)
+          timeSpent: Math.round(timerData.timeSpent + timeElapsed),
+          lastSessionTime: timeElapsed,
+          lastSessionDate: new Date(Date.now())
         });
       }
     }
