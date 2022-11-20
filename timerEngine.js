@@ -31,8 +31,14 @@ module.exports = (client) => {
             intiationTime: new Date(Date.now())
           });
         }
+
+        const readyEmbed = new MessageEmbed()
+          .setTitle(`🕜 Session Started`)
+          .setDescription(`Best of luck!`)
+          .setColor(colours.DEFAULT);
+
         await interaction.reply({
-          content: `Timer started`
+          embeds: [readyEmbed]
         });
       } else if (interaction.customId === "devTimer") {
         if (interaction.user.id !== "333644367539470337")
@@ -54,29 +60,13 @@ module.exports = (client) => {
 
         const timeElapsed = (Date.now() - startedAtUNIX) / 1000;
 
-        const percentageDiff =
-          timeElapsed / (timerData.timeSpent / timerData.numberOfStarts);
-
-        let percentageDisplay;
-
-        if (percentageDiff < 1)
-          percentageDisplay = `This session was ${(
-            percentageDiff * 100
-          ).toFixed(2)}% your average session time.`;
-        else if (percentageDiff > 1)
-          percentageDisplay = `This session was ${(
-            percentageDisplay * 100
-          ).toFixed(2)} your average session time, good job.`;
-        else if (percentageDisplay === 1)
-          percentageDisplay = `This session was exactly your average session time, probability of that happening is very low, wow.`;
-
         const sessionDetails = new MessageEmbed()
-          .setTitle(`🕛 Timer Stopped`)
+          .setTitle(`🕛 Session Ended`)
           .setColor(colours.DEFAULT)
           .setDescription(
-            `Time spent:\n${msToTime(timeElapsed * 1000)} [${Math.round(
+            `Time Elapsed:\n${msToTime(timeElapsed * 1000)} [${Math.round(
               timeElapsed
-            ).toLocaleString()} seconds]\n\n${percentageDisplay}`
+            ).toLocaleString()} seconds]`
           )
           .setTimestamp();
 
