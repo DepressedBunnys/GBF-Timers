@@ -64,15 +64,20 @@ module.exports = class botBans extends SlashCommand {
             else if (currentHour >= 19 && currentHour < 24)
               titleText = `Enjoying your evening ${interaction.user.username}?`;
 
-            const avgBreakTime = userData.breakTime / userData.totalBreaks;
+            let avgBreakTime = userData.breakTime / userData.totalBreaks;
+
+            let readableAvgBreakTime = msToTime(avgBreakTime * 1000);
+
+            if (!userData.totalBreaks || !userData.breakTime) {
+              avgBreakTime = 0;
+              readableAvgBreakTime = "0 Seconds";
+            }
 
             const userStats = new MessageEmbed()
               .setTitle(`${titleText}`)
               .setColor(colours.DEFAULT)
               .setDescription(
-                `• Average study session time: ${updatedUserData}\n• Average break time: ${msToTime(
-                  avgBreakTime * 1000
-                )} [${avgBreakTime.toFixed(
+                `• Average study session time: ${updatedUserData}\n• Average break time: ${readableAvgBreakTime} [${avgBreakTime.toFixed(
                   2
                 )} s]\n• Total time spent studying: ${totalTime}\n• Number of study sessions: ${
                   userData.numberOfStarts
