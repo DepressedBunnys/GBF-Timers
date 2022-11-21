@@ -13,7 +13,20 @@ const TimerSchema = new Schema(
       default: 0
     },
     lastSessionTime: Number,
-    lastSessionDate: Date
+    lastSessionDate: Date,
+    breakTime: {
+      type: Number,
+      default: 0
+    },
+    totalBreaks: {
+      type: Number,
+      default: 0
+    },
+    sessionBreakTime: {
+      type: Number,
+      default: 0
+    },
+    breakTimerStart: Date
   },
   {
     collection: "Timer data"
