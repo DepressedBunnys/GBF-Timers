@@ -64,24 +64,27 @@ module.exports = class botBans extends SlashCommand {
             else if (currentHour >= 19 && currentHour < 24)
               titleText = `Enjoying your evening ${interaction.user.username}?`;
 
-            const timerStart = new MessageEmbed()
+            const avgBreakTime = userData.breakTime / userData.totalBreaks;
+
+            const userStats = new MessageEmbed()
               .setTitle(`${titleText}`)
               .setColor(colours.DEFAULT)
               .setDescription(
-                `• Average session time: ${updatedUserData}\n• Total time spent: ${totalTime}\n• Number of sessions: ${
+                `• Average study session time: ${updatedUserData}\n• Average break time: ${msToTime(
+                  avgBreakTime * 1000
+                )} [${avgBreakTime.toFixed(
+                  2
+                )} s]\n• Total time spent studying: ${totalTime}\n• Number of study sessions: ${
                   userData.numberOfStarts
-                }\n\n**Last Session Details**\n• Session time: ${msToTime(
+                }\n\n**Last Study Session Details**\n• Session time: ${msToTime(
                   userData.lastSessionTime * 1000
                 )}\n• Session date: <t:${Math.round(
                   userData.lastSessionDate / 1000
                 )}:F>`
-              )
-              .setFooter({
-                text: `Best of luck!`
-              });
+              );
 
             return interaction.reply({
-              embeds: [timerStart]
+              embeds: [userStats]
             });
           }
         },
@@ -151,7 +154,7 @@ module.exports = class botBans extends SlashCommand {
               .setTitle(`${titleText}`)
               .setColor(colours.DEFAULT)
               .setDescription(
-                `Average session time: ${updatedUserData}\nTotal time spent: ${totalTime}\nNumber of sessions: ${userData.numberOfStarts}\n\n${goofyAdvice}`
+                `• Average session time: ${updatedUserData}\n• Total time spent: ${totalTime}\n• Number of sessions: ${userData.numberOfStarts}\n\n${goofyAdvice}`
               )
               .setFooter({
                 text: `Best of luck!`
@@ -160,6 +163,70 @@ module.exports = class botBans extends SlashCommand {
             await interaction.reply({
               embeds: [timerStart],
               components: [timerButtonA]
+            });
+          }
+        },
+        pause: {
+          description: "Pause the timer",
+          execute: async ({ client, interaction }) => {
+            if (interaction.user.id !== "333644367539470337")
+              return interaction.reply({
+                content: `Developer only L`,
+                ephemeral: true
+              });
+
+            const userData = await timerSchema.findOne({
+              userID: interaction.user.id
+            });
+
+            if (!userData) {
+              const newData = new timerSchema({
+                userID: interaction.user.id
+              });
+              await newData.save();
+              return interaction.reply({
+                content: `Please re-run the program`,
+                ephemeral: true
+              });
+            }
+
+            const unpauseTimer = new MessageActionRow().addComponents([
+              new MessageButton()
+                .setStyle("SECONDARY")
+                .setLabel("Un-pause")
+                .setCustomId("unpauseTimer")
+                .setEmoji("🕜")
+            ]);
+
+            const timerStarted = new MessageEmbed()
+              .setTitle(`${emojis.ERROR} You can't do that`)
+              .setColor(colours.DEFAULT)
+              .setDescription(
+                `The break timer is already on, I'll give you the un-pause button just in-case.`
+              );
+
+            if (userData.breakTimerStart)
+              return interaction.reply({
+                embeds: [timerStarted],
+                components: [unpauseTimer],
+                ephemeral: true
+              });
+
+            const timerPaused = new MessageEmbed()
+              .setTitle(`🕛 Timer Paused`)
+              .setColor(colours.DEFAULT)
+              .setDescription(
+                `Break timer now on and the time elapsed will not be counted towards the session timer.`
+              );
+
+            await userData.updateOne({
+              breakTimerStart: new Date(Date.now()),
+              totalBreaks: userData.totalBreaks + 1
+            });
+
+            return interaction.reply({
+              embeds: [timerPaused],
+              components: [unpauseTimer]
             });
           }
         }
