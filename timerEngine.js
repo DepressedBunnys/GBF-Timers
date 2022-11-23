@@ -66,7 +66,7 @@ module.exports = (client) => {
         if (timerData.sessionBreakTime) {
           breakTime = timerData.sessionBreakTime;
           readableBreakTime = msToTime(breakTime * 1000);
-        } else readableBreakTime = "0 Seconds";
+        } else readableBreakTime = 0;
 
         const timeElapsed = (Date.now() - startedAtUNIX) / 1000 - breakTime;
 
@@ -75,9 +75,18 @@ module.exports = (client) => {
         const newAvg =
           (timerData.timeSpent + timeElapsed) / (timerData.numberOfStarts + 1);
 
-        const averageDifference = (newAvg - oldAvg).toFixed(2);
+        const averageDifference = newAvg - oldAvg;
 
-        const readableDifference = msToTime(averageDifference * 1000);
+        let readableDifference;
+
+        if (Math.abs(averageDifference) !== averageDifference)
+          readableDifference = `-${msToTime(
+            Math.abs(averageDifference) * 1000
+          )}`;
+        else
+          readableDifference = `${msToTime(
+            Math.abs(averageDifference) * 1000
+          )}`;
 
         const sessionDetails = new MessageEmbed()
           .setTitle(`🕛 Session Ended`)
@@ -85,7 +94,11 @@ module.exports = (client) => {
           .setDescription(
             `• Time Elapsed:\n${msToTime(timeElapsed * 1000)} [${Math.round(
               timeElapsed
-            ).toLocaleString()} seconds]\n• Break Time: ${readableBreakTime} [${breakTime}]\n\n• Average Study Session Time Movement: ${averageDifference.toLocaleString()}s [${readableDifference}]`
+            ).toLocaleString()} seconds]\n• Break Time: ${readableBreakTime} [${breakTime
+              .toFixed(2)
+              .toLocaleString()}S]\n\n• Average Study Session Time Movement: ${averageDifference
+              .toFixed(2)
+              .toLocaleString()}s [${readableDifference}]`
           )
           .setTimestamp();
 
@@ -113,7 +126,7 @@ module.exports = (client) => {
           userID: interaction.user.id
         });
 
-        if (!timerData || timerData.intiationTime === null) {
+        if (!timerData || timerData.breakTimerStart === null) {
           return interaction.reply({
             content: `There's no previous recorded start time.`
           });
@@ -135,7 +148,9 @@ module.exports = (client) => {
           .setTitle(`🕜 Timer Un-Paused`)
           .setColor(colours.DEFAULT)
           .setDescription(
-            `• Break Duration: ${readableTimeElapsed} [${timeElapsed.toFixed(2)} s]`
+            `• Break Duration: ${readableTimeElapsed} [${timeElapsed.toFixed(
+              2
+            )} s]`
           );
 
         return interaction.reply({
