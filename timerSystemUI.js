@@ -52,6 +52,7 @@ module.exports = class botBans extends SlashCommand {
             );
 
             const totalTime = msToTime(userData.timeSpent * 1000);
+            const totalTimeHours = (userData.timeSpent / 60 / 60).toFixed(2);
 
             let titleText;
 
@@ -79,7 +80,7 @@ module.exports = class botBans extends SlashCommand {
               .setDescription(
                 `• Average study session time: ${updatedUserData}\n• Average break time: ${readableAvgBreakTime} [${avgBreakTime.toFixed(
                   2
-                )} s]\n• Total time spent studying: ${totalTime}\n• Number of study sessions: ${
+                )} s]\n• Total time spent studying: ${totalTime} [${totalTimeHours} Hours]\n• Number of study sessions: ${
                   userData.numberOfStarts
                 }\n\n**Last Study Session Details**\n• Session time: ${msToTime(
                   userData.lastSessionTime * 1000
@@ -192,6 +193,12 @@ module.exports = class botBans extends SlashCommand {
               return interaction.reply({
                 content: `Please re-run the program`,
                 ephemeral: true
+              });
+            }
+
+            if (!userData || userData.intiationTime === null) {
+              return interaction.reply({
+                content: `There's no previous recorded start time.`
               });
             }
 
