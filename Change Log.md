@@ -40,3 +40,11 @@
 •	Fixed undefined error for time movement <br>
 •	Rounded time movement to 2 D.P. <br>
 •	Fixed break timer initiation  <br>
+•	Added new titles <br>
+•	Added longest session data <br>
+•	Greatly improved performance <br>
+•	Re-vamped code and improved code readability <br>
+•	Fixed many minor bugs <br>
+•	Fixed undefined bugs if the timer was at 0 <br>
+•	Temporarily removed the display stats command due to bugs <br>
+
