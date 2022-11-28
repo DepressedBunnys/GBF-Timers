@@ -117,11 +117,10 @@ module.exports = (client) => {
         ((Date.now() - timerData.intiationTime.getTime()) / 1000).toFixed(3) -
         breakTime;
 
-      const averageBreakTime = (
-        timerData.sessionBreakTime / timerData.sessionBreaks !== 0
-          ? timerData.sessionBreaks
-          : 1
-      ).toFixed(2);
+      let averageBreakTime =
+        timerData.sessionBreakTime / timerData.sessionBreaks;
+
+      if (!averageBreakTime) averageBreakTime = 0;
 
       let displayAvgBreakTime;
       let totalBreakTimeDisplay;
@@ -130,20 +129,20 @@ module.exports = (client) => {
         displayAvgBreakTime = `0 seconds`;
         totalBreakTimeDisplay = `0 seconds`;
       } else {
-        displayAvgBreakTime = `${msToTime(displayAvgBreakTime * 1000)}`;
+        displayAvgBreakTime = `${msToTime(averageBreakTime * 1000)}`;
         totalBreakTimeDisplay = `${msToTime(
           Math.abs(timerData.sessionBreakTime) * 1000
         )}`;
       }
-      const oldAverageTime = timerData.timeSpent / timerData.numberOfStarts - 1;
+      const oldAverageTime = timerData.timeSpent / timerData.numberOfStarts;
       const newAverageTime =
-        (timerData.timeSpent + timeElapsed) / timerData.numberOfStarts;
+        (timerData.timeSpent + timeElapsed) / (timerData.numberOfStarts + 1);
 
       const deltaAverageTime = newAverageTime - oldAverageTime;
 
       let displayDeltaAverageTime;
 
-      if (deltaAverageTime < 0)
+      if (Math.abs(deltaAverageTime) !== deltaAverageTime)
         displayDeltaAverageTime = `-${msToTime(
           Math.abs(deltaAverageTime * 1000)
         )}`;
