@@ -8,7 +8,7 @@ const emojis = require("../../GBFEmojis.json");
 
 const timerSchema = require("../../schemas/GBF Schemas/timer schema");
 
-const { msToTime, delay } = require("../../utils/engine");
+const { msToTime, delay, twentyFourToTwelve } = require("../../utils/engine");
 
 const fetch = require("node-fetch");
 
@@ -68,6 +68,29 @@ module.exports = class Tests extends SlashCommand {
             else
               displayAverageBreakTime = `${msToTime(averageBreakTime * 1000)}`;
 
+            let averageStartTime;
+
+            const sumOfTimes = timerData.startTime.reduce(
+              (partialSum, a) => partialSum + a,
+              0
+            );
+
+            console.log(sumOfTimes);
+
+            averageStartTime = sumOfTimes / timerData.startTime.length;
+
+            let displayAverageStartTime;
+
+            if (
+              Math.abs(averageStartTime) !== averageStartTime ||
+              !averageStartTime
+            )
+              displayAverageStartTime = `In-sufficient data`;
+            else
+              displayAverageStartTime = `${twentyFourToTwelve(
+                averageStartTime
+              )}`;
+
             const accountDetails = `• Total Study Session Time: ${msToTime(
               timerData.timeSpent * 1000
             )} [${Math.round(
@@ -86,7 +109,9 @@ module.exports = class Tests extends SlashCommand {
               timerData.lastSessionTime * 1000
             )}\n• Session Date:<t:${Math.round(
               timerData.lastSessionDate / 1000
-            )}:F>, <t:${Math.round(timerData.lastSessionDate / 1000)}:R>`;
+            )}:F>, <t:${Math.round(
+              timerData.lastSessionDate / 1000
+            )}:R>\n\n• Average Start Time: ${displayAverageStartTime}`;
 
             const currentTimeOfDay = new Date().getHours();
 
@@ -369,23 +394,26 @@ module.exports = class Tests extends SlashCommand {
               breakTime = timerData.sessionBreakTime;
             else breakTime = 0;
 
+            let displayBreakTime;
+
+            if (!msToTime(breakTime * 1000)) displayBreakTime = `0 seconds`;
+            else displayBreakTime = `${msToTime(breakTime * 1000)}`;
+
             const timeElapsed =
               ((Date.now() - timerData.intiationTime.getTime()) / 1000).toFixed(
                 3
               ) - breakTime;
 
             const sessionStats = `• Time Elapsed: ${msToTime(
-              Math.abs(timeElapsed)
-            )}\n• Total Break Time: ${msToTime(
-              msToTime(breakTime)
-            )}\n• Total Breaks: ${timerData.sessionBreaks}`;
+              Math.abs(timeElapsed * 1000)
+            )}\n• Total Break Time: ${displayBreakTime}\n• Total Breaks: ${
+              timerData.sessionBreaks
+            }\n\n• Start Time: <t:${Math.round(
+              timerData.lastSessionDate / 1000
+            )}:F>`;
 
             const sessionStatsDisplay = new MessageEmbed()
-              .setDescription(
-                `**<t:${Math.round(
-                  timerData.lastSessionDate / 1000
-                )}:R> Session Stats**\n\n${sessionStats}`
-              )
+              .setDescription(`**Session Stats**\n\n${sessionStats}`)
               .setColor(colours.DEFAULT);
 
             return interaction.reply({
