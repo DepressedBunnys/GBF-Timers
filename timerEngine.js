@@ -69,6 +69,10 @@ module.exports = (client) => {
         sessionBreakTime: 0
       });
 
+      await timerData.startTime.push(new Date().getHours()).then(async () => {
+        await timerData.save();
+      });
+
       const originalMessage = await interaction.channel.messages.fetch(
         timerData.messageID
       );
