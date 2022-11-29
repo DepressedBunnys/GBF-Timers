@@ -47,4 +47,15 @@
 •	Fixed many minor bugs <br>
 •	Fixed undefined bugs if the timer was at 0 <br>
 •	Temporarily removed the display stats command due to bugs <br>
-
+•	Added current session stats command <br>
+•	Fixed undefined error in average break time <br>
+•	Fixed known mathematical errors  <br>
+•	Added display account stats command <br>
+•	Fixed many old bugs in the account stats bug <br>
+•	Added longest session to the account stats <br>
+•	Fixed wrong times being shown <br>
+•	Fixed display issues with the info command <br>
+•	Fixed incorrect time in current session info <br>
+•	Changed C.S.I title <br>
+•	Added 24-hour to 12-hour function <br>
+•	Added average start time <br>
