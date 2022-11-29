@@ -4,6 +4,10 @@ const TimerSchema = new Schema(
   {
     userID: String,
     messageID: String,
+    startTime: {
+      type: Array,
+      default: []
+    },
     intiationTime: {
       type: Date,
       default: null
