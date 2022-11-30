@@ -418,7 +418,7 @@ function msToTime(time, options = {}) {
   if (timeStr === "") return undefined;
   else return timeStr;
 }
-
+// Does not support long, medium or short date formats
 function betterMSToTime(ms) {
   let seconds = (ms / 1000).toFixed(1);
   let minutes = (ms / (1000 * 60)).toFixed(1);
@@ -492,6 +492,23 @@ function removeEmojis(string) {
 
 function hasNumber() {
   return /\d/.test();
+}
+
+function hasSpace(str) {
+  return str.indexOf(" ") >= 0;
+}
+
+function betterHasNumber(str) { 
+  let hasNum = false;
+  const seperatedStr = str.split("");
+    for (let i = 0; i < seperatedStr.length; i++) {
+      if (!hasSpace(seperatedStr) {
+        if (!Number.isNaN(seperatedStr[i]) {
+          hasNum = true;
+          }
+       }
+    }
+  return hasNum;
 }
 
 function Arraytoshuffle(array) {
