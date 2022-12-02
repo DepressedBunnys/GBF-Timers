@@ -8,7 +8,11 @@ const emojis = require("../../GBFEmojis.json");
 
 const timerSchema = require("../../schemas/GBF Schemas/timer schema");
 
-const { msToTime, delay, twentyFourToTwelve } = require("../../utils/engine");
+const {
+  msToTime,
+  chunkAverage,
+  twentyFourToTwelve
+} = require("../../utils/engine");
 
 const fetch = require("node-fetch");
 
@@ -75,21 +79,40 @@ module.exports = class Tests extends SlashCommand {
               0
             );
 
-            console.log(sumOfTimes);
-
-            averageStartTime = sumOfTimes / timerData.startTime.length;
+            averageStartTime = (
+              sumOfTimes / timerData.startTime.length
+            ).toFixed(2);
 
             let displayAverageStartTime;
 
-            if (
-              Math.abs(averageStartTime) !== averageStartTime ||
-              !averageStartTime
-            )
+            if (!averageStartTime)
               displayAverageStartTime = `In-sufficient data`;
             else
               displayAverageStartTime = `${twentyFourToTwelve(
                 averageStartTime
               )}`;
+
+            let averageTimePerWeek;
+
+            const weekAverages = chunkAverage(timerData.sessionLengths, 7);
+
+            const chunkSum = weekAverages.reduce(
+              (partialSum, a) => partialSum + a,
+              0
+            );
+
+            averageTimePerWeek =
+              (chunkSum / weekAverages.length - 1 > 0
+                ? weekAverages.length - 1
+                : weekAverages.length) +
+              63 * 60 * 60;
+
+            if (averageTimePerWeek <= 0 || !averageTimePerWeek)
+              averageTimePerWeek = `In-sufficient data`;
+            else
+              averageTimePerWeek = `${msToTime(averageTimePerWeek * 1000)} [${(
+                averageTimePerWeek / 3600
+              ).toFixed(2)} Hours]`;
 
             const accountDetails = `• Total Study Session Time: ${msToTime(
               timerData.timeSpent * 1000
@@ -111,7 +134,7 @@ module.exports = class Tests extends SlashCommand {
               timerData.lastSessionDate / 1000
             )}:F>, <t:${Math.round(
               timerData.lastSessionDate / 1000
-            )}:R>\n\n• Average Start Time: ${displayAverageStartTime}`;
+            )}:R>\n\n• Average Start Time: ${displayAverageStartTime}\n• Average Study Time Per Week: ${averageTimePerWeek}`;
 
             const currentTimeOfDay = new Date().getHours();
 
