@@ -59,5 +59,6 @@
 •	Changed C.S.I title <br>
 •	Added 24-hour to 12-hour function <br>
 •	Added average start time <br>
-•   Fixed average time movement never being in the negatives <br>
-
+•	Fixed in-sufficient data error in start time <br>
+•	Added average time spent per week data <br>
+•	Fixed average time movement never being in the negatives <br>
