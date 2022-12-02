@@ -418,7 +418,7 @@ function msToTime(time, options = {}) {
   if (timeStr === "") return undefined;
   else return timeStr;
 }
-// Does not support long, medium or short date formats
+
 function betterMSToTime(ms) {
   let seconds = (ms / 1000).toFixed(1);
   let minutes = (ms / (1000 * 60)).toFixed(1);
@@ -492,23 +492,6 @@ function removeEmojis(string) {
 
 function hasNumber() {
   return /\d/.test();
-}
-
-function hasSpace(str) {
-  return str.indexOf(" ") >= 0;
-}
-
-function betterHasNumber(str) { 
-  let hasNum = false;
-  const seperatedStr = str.split("");
-    for (let i = 0; i < seperatedStr.length; i++) {
-      if (!hasSpace(seperatedStr) {
-        if (!Number.isNaN(seperatedStr[i]) {
-          hasNum = true;
-          }
-       }
-    }
-  return hasNum;
 }
 
 function Arraytoshuffle(array) {
@@ -716,6 +699,30 @@ function twentyFourToTwelve(hours) {
   return displayTime;
 }
 
+function chunkAverage(chunkArray, size) {
+  let renderedChunk;
+  let chunkAverage = 0;
+  let chunkSum = 0;
+
+  const mainChunk = [];
+  const averageChunks = [];
+
+  const splitIndex = !Number.isNaN(size) ? size : 5;
+
+  while (chunkArray.length > 0) {
+    renderedChunk = chunkArray.splice(0, splitIndex);
+
+    mainChunk.push(renderedChunk);
+  }
+
+  for (let j = 0; j < mainChunk.length; j++) {
+    chunkSum = mainChunk[j].reduce((partialSum, a) => partialSum + a, 0);
+    // chunkAverage = chunkSum / mainChunk[j].length;
+    averageChunks.push(chunkSum);
+  }
+  return averageChunks;
+}
+
 module.exports = {
   processArguments,
   paginate,
@@ -741,7 +748,8 @@ module.exports = {
   BMIMetric,
   betterMSToTime,
   hasProfanity,
-  twentyFourToTwelve
+  twentyFourToTwelve,
+  chunkAverage
 };
 
 const timeUnits = {
