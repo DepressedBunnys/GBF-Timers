@@ -87,10 +87,7 @@ module.exports = class Tests extends SlashCommand {
 
             if (!averageStartTime)
               displayAverageStartTime = `In-sufficient data`;
-            else
-              displayAverageStartTime = `${twentyFourToTwelve(
-                averageStartTime
-              )}`;
+            else displayAverageStartTime = twentyFourToTwelve(averageStartTime);
 
             let averageTimePerWeek;
 
@@ -101,19 +98,34 @@ module.exports = class Tests extends SlashCommand {
               0
             );
 
-            averageTimePerWeek =
-              (chunkSum / weekAverages.length - 1 > 0
-                ? weekAverages.length - 1
-                : weekAverages.length) +
-              63 * 60 * 60;
+            function toHours(seconds) {
+              return seconds / 3600;
+            }
 
-            if (averageTimePerWeek <= 0 || !averageTimePerWeek)
+            function averageTotal(data) {
+              let sum = 0;
+              for (let k = 0; k < data.length; k++) {
+                sum += data[k];
+              }
+              return sum / data.length;
+            }
+
+            if (!weekAverages.length || weekAverages.length < 1)
               averageTimePerWeek = `In-sufficient data`;
-            else
-              averageTimePerWeek = `${msToTime(averageTimePerWeek * 1000)} [${(
-                averageTimePerWeek / 3600
-              ).toFixed(2)} Hours]`;
+            else {
+              averageTimePerWeek = `${msToTime(
+                averageTotal(weekAverages) * 1000
+              )} [${toHours(averageTotal(weekAverages)).toFixed(2)} Hours]`;
 
+              // averageTimePerWeek = (chunkSum / weekAverages.length).toFixed(2);
+
+              // if (averageTimePerWeek <= 0 || !averageTimePerWeek)
+              //   averageTimePerWeek = `In-sufficient data`;
+              // else
+              //   averageTimePerWeek = `${msToTime(
+              //     averageTimePerWeek * 1000
+              //   )} [${(averageTimePerWeek / 3600).toFixed(2)} Hours]`;
+            }
             const accountDetails = `• Total Study Session Time: ${msToTime(
               timerData.timeSpent * 1000
             )} [${Math.round(
