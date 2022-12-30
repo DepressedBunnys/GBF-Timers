@@ -62,3 +62,6 @@
 •	Fixed in-sufficient data error in start time <br>
 •	Added average time spent per week data <br>
 •	Fixed average time movement never being in the negatives <br>
+• Fixed wrong average time per month data <br>
+• Fixed time in seconds being +- 1 <br>
+• Fixed an issue with the wrong data type being inserted when setting the session time <br>
