@@ -69,9 +69,8 @@ module.exports = (client) => {
         sessionBreakTime: 0
       });
 
-      await timerData.startTime.push(new Date().getHours()).then(async () => {
-        await timerData.save();
-      });
+      await timerData.startTime.push(new Date().getHours());
+      await timerData.save();
 
       const originalMessage = await interaction.channel.messages.fetch(
         timerData.messageID
@@ -207,6 +206,9 @@ module.exports = (client) => {
         sessionBreaks: 0,
         sessionBreakTime: 0
       });
+
+      await timerData.sessionLengths.push(Number(timeElapsed.toFixed(4)));
+      await timerData.save();
 
       await interaction.reply({
         embeds: [sessionEnded]
