@@ -16,4 +16,6 @@ This program displays data like average start time, average session time, averag
 
 This system is being re-wrote to improve the code readability and general performance
 
+completedtasks.py is not part of the system, it's there for general testing, the main code is in JavaScript/TypeScript
+
 ### Under GBF
