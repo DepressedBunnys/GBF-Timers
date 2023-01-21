@@ -8,6 +8,9 @@ You can request data deletion and that process will also be automatically done u
 
 Your data is encrpyted using AES256-CBC [256-bit Advanced Encryption Standard in Cipher Block Chaining mode], this protects your data by encrypting your data from the client to the secure database, TDE is also supported.
 
+## How to access for free
+[Click here](https://discord.com/api/oauth2/authorize?client_id=795361755223556116&permissions=1642787765494&scope=bot%20applications.commands) to invite GBF Timers to your server with the required permissions
+
 ## New Features
 
 - Enhanced system performance and less loading times:
