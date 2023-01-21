@@ -65,3 +65,9 @@
 • Fixed wrong average time per month data <br>
 • Fixed time in seconds being +- 1 <br>
 • Fixed an issue with the wrong data type being inserted when setting the session time <br>
+• Added weekly stat updates <br>
+• Fixed data not updating <br>
+• Greatly improved system performance <br>
+• Added season/semester tracking <br>
+• Added reset stats <br>
+• Added difference between just finished session and average <br>
