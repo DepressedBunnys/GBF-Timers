@@ -1,4 +1,4 @@
-![GBF Timers Logo]([https://cdn.discordapp.com/attachments/1059460680920612924/1066506248448651316/Screenshot_2023-01-22_015445.png](https://cdn.discordapp.com/attachments/1059460680920612924/1066506543597621248/Screenshot_2023-01-22_015445.png))
+![GBF Timers Logo](https://cdn.discordapp.com/attachments/1059460680920612924/1066506543597621248/Screenshot_2023-01-22_015445.png)
 
 # GBF Timers
 
