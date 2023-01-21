@@ -1,3 +1,4 @@
+![GBF Timers Logo](https://cdn.discordapp.com/attachments/1059460680920612924/1066506968430301234/Screenshot_2023-01-22_015445-removebg-preview.png)
 # GBF Timers V2
 
 ## Data Protection
