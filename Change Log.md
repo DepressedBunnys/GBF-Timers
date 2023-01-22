@@ -71,3 +71,8 @@
 • Added season/semester tracking <br>
 • Added reset stats <br>
 • Added difference between just finished session and average <br>
+• Added current semester naming <br>
+• Added delete data <br>
+• Improved data security <br>
+• Added extra layers of confirmation for data delete <br>
+• Improved session info UI <br>
