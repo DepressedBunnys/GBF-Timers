@@ -5,6 +5,22 @@ const TimerSchema = new Schema(
     userID: String,
     messageID: String,
     seasonName: String,
+    seasonLevel: {
+      type: Number,
+      default: 1
+    },
+    seasonXP: {
+      type: Number,
+      default: 0
+    },
+    accountXP: {
+      type: Number,
+      default: 0
+    },
+    accountLevel: {
+      type: Number,
+      default: 1
+    },
     startTime: {
       type: Array,
       default: []
