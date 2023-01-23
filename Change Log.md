@@ -76,3 +76,4 @@
 • Improved data security <br>
 • Added extra layers of confirmation for data delete <br>
 • Improved session info UI <br>
+• Improved engine performance <br>
