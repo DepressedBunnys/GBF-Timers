@@ -22,58 +22,38 @@ module.exports = (client) => {
 
     const invalidPermissionsMessage = `You cannot use this`;
 
+    const forbidden403Message = `403 Forbidden\nYou do not have access to use this button.`;
+    const notFound404Message0 = `404 Not Found\nUser profile not found, you can create one for free using <>.`;
+    const notFound404Message2 = `404 Not Found\nMessage ID in database was not found, to create one use <>.`;
+    const notFound404Message3 = `404 Not Found\nThe initiation message was not found, to create one use <>.`;
+
     // Creating a function that checks if the user who clicked the button is the same user who ran the command
 
     async function checkUser(data, originalMessage, interaction) {
       let functionOutput;
-      // Checking if the message ID exists in the DB
-      if (!data.messageID) {
-        // Resetting the timer data since the original message could not be found in the DB
 
-        await data.updateOne({
-          intiationTime: null
-        });
-
-        await interaction.reply({
-          content: `No data on the original message could be found.`,
-          ephemeral: true
-        });
-
-        functionOutput = false;
-      }
+      // This works by creating error codes for each case, this way we can return a message to the user for each error
+      if (
+        data &&
+        originalMessage &&
+        originalMessage.interaction.user.id !== interaction.user.id
+      )
+        return (functionOutput = "403");
+      else if (!data) return (functionOutput = "404");
       // Checking if the message exists
-      else if (!originalMessage) {
-        // Deleting the message ID from the DB
-
-        await data.updateOne({
-          messageID: null
-        });
-
-        await interaction.reply({
-          content: `I couldn't find the original message, please re-run the initiate command <>.`,
-          ephemeral: true
-        });
-        functionOutput = false;
-      }
-
+      else if (data && !originalMessage) return (functionOutput = "404-3");
+      // Checking if the message ID exists in the DB
+      if (data && !data.messageID) return (functionOutput = "404-2");
       // Checking if the interaction belongs to the original author
-      else if (data.interaction.user.id !== interaction.user.id) {
-        await interaction.reply({
-          content: `${invalidPermissionsMessage}`,
-          ephemeral: true
-        });
-        functionOutput = false;
-      } else functionOutput = true;
-
-      return functionOutput;
+      else return (functionOutput = true);
     }
 
     // Checking if the document contains valid data
     if (
-      interaction.customId !== "startTimer" &&
-      interaction.customId !== "pauseTimer" &&
-      interaction.customId !== "unpauseTimer" &&
-      interaction.customId !== "stopTimer"
+      interaction.customId === "startTimer" ||
+      interaction.customId === "pauseTimer" ||
+      interaction.customId === "unpauseTimer" ||
+      interaction.customId === "stopTimer"
     ) {
       if (!timerData || !timerData.seasonName) return;
     }
@@ -92,7 +72,41 @@ module.exports = (client) => {
         interaction
       );
 
-      if (!userCheck) return;
+      if (userCheck !== true) {
+        if (userCheck === "404")
+          return interaction.reply({
+            content: `${notFound404Message0}`,
+            ephemeral: true
+          });
+        else if (userCheck === "404-2") {
+          // Resetting the timer data since the original message could not be found in the DB
+
+          await timerData.updateOne({
+            intiationTime: null
+          });
+
+          return interaction.reply({
+            content: `${notFound404Message2}`,
+            ephemeral: true
+          });
+        } else if (userCheck === "404-3") {
+          // Deleting the message ID from the DB
+
+          await timerData.updateOne({
+            messageID: null
+          });
+
+          return interaction.reply({
+            content: `${notFound404Message3}`,
+            ephemeral: true
+          });
+        } else if (userCheck === "403") {
+          return interaction.reply({
+            content: `${forbidden403Message}`,
+            ephemeral: true
+          });
+        }
+      }
 
       // Creating disabled buttons so the user can't start twice
 
@@ -175,7 +189,41 @@ module.exports = (client) => {
         interaction
       );
 
-      if (!userCheck) return;
+      if (userCheck !== true) {
+        if (userCheck === "404")
+          return interaction.reply({
+            content: `${invalidPermissionsMessage}`,
+            ephemeral: true
+          });
+        else if (userCheck === "404-2") {
+          // Resetting the timer data since the original message could not be found in the DB
+
+          await timerData.updateOne({
+            intiationTime: null
+          });
+
+          return interaction.reply({
+            content: `No data on the original message could be found.`,
+            ephemeral: true
+          });
+        } else if (userCheck === "404-3") {
+          // Deleting the message ID from the DB
+
+          await timerData.updateOne({
+            messageID: null
+          });
+
+          return interaction.reply({
+            content: `I couldn't find the original message, please re-run the initiate command <>.`,
+            ephemeral: true
+          });
+        } else if (userCheck === "403") {
+          return interaction.reply({
+            content: `${invalidPermissionsMessage}`,
+            ephemeral: true
+          });
+        }
+      }
 
       // Creating an upause button
 
@@ -248,7 +296,41 @@ module.exports = (client) => {
         interaction
       );
 
-      if (!userCheck) return;
+      if (userCheck !== true) {
+        if (userCheck === "404")
+          return interaction.reply({
+            content: `${invalidPermissionsMessage}`,
+            ephemeral: true
+          });
+        else if (userCheck === "404-2") {
+          // Resetting the timer data since the original message could not be found in the DB
+
+          await timerData.updateOne({
+            intiationTime: null
+          });
+
+          return interaction.reply({
+            content: `No data on the original message could be found.`,
+            ephemeral: true
+          });
+        } else if (userCheck === "404-3") {
+          // Deleting the message ID from the DB
+
+          await timerData.updateOne({
+            messageID: null
+          });
+
+          return interaction.reply({
+            content: `I couldn't find the original message, please re-run the initiate command <>.`,
+            ephemeral: true
+          });
+        } else if (userCheck === "403") {
+          return interaction.reply({
+            content: `${invalidPermissionsMessage}`,
+            ephemeral: true
+          });
+        }
+      }
 
       const mainButtonsRowD = new MessageActionRow().addComponents([
         new MessageButton()
@@ -335,7 +417,41 @@ module.exports = (client) => {
         interaction
       );
 
-      if (!userCheck) return;
+      if (userCheck !== true) {
+        if (userCheck === "404")
+          return interaction.reply({
+            content: `${invalidPermissionsMessage}`,
+            ephemeral: true
+          });
+        else if (userCheck === "404-2") {
+          // Resetting the timer data since the original message could not be found in the DB
+
+          await timerData.updateOne({
+            intiationTime: null
+          });
+
+          return interaction.reply({
+            content: `No data on the original message could be found.`,
+            ephemeral: true
+          });
+        } else if (userCheck === "404-3") {
+          // Deleting the message ID from the DB
+
+          await timerData.updateOne({
+            messageID: null
+          });
+
+          return interaction.reply({
+            content: `I couldn't find the original message, please re-run the initiate command <>.`,
+            ephemeral: true
+          });
+        } else if (userCheck === "403") {
+          return interaction.reply({
+            content: `${invalidPermissionsMessage}`,
+            ephemeral: true
+          });
+        }
+      }
 
       const mainButtonsRowDisabled = new MessageActionRow().addComponents([
         new MessageButton()
