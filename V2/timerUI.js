@@ -110,7 +110,6 @@ module.exports = class BasicTimerUI extends SlashCommand {
               )}:F>, <t:${Math.round(timerData.lastSessionDate / 1000)}:R>`;
               // By switching this to true, we can tell the system that a previous session exists so it can display it
               deltaTime = timerData.lastSessionTime - rawTotalTime;
-              console.log(deltaTime);
             } else {
               HRSessionTime = `In-sufficient data`;
               UNIXSessionDate = `In-sufficient data`;
