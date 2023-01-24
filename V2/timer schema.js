@@ -63,8 +63,7 @@ const TimerSchema = new Schema(
       type: Number,
       default: 0
     },
-    breakTimerStart: Date,
-    breakMessageID: String
+    breakTimerStart: Date
   },
   {
     collection: "Timer data"
