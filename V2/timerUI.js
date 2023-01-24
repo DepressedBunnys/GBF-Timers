@@ -110,6 +110,7 @@ module.exports = class BasicTimerUI extends SlashCommand {
               )}:F>, <t:${Math.round(timerData.lastSessionDate / 1000)}:R>`;
               // By switching this to true, we can tell the system that a previous session exists so it can display it
               deltaTime = timerData.lastSessionTime - rawTotalTime;
+              console.log(deltaTime);
             } else {
               HRSessionTime = `In-sufficient data`;
               UNIXSessionDate = `In-sufficient data`;
@@ -135,6 +136,11 @@ module.exports = class BasicTimerUI extends SlashCommand {
               return sum / data.length;
             }
 
+            // Function that converts seconds to hours
+            function toHours(seconds) {
+              return seconds / 3600;
+            }
+
             if (!weeklyAverages.length || weeklyAverages.length < 1)
               displayWeeklyTimeAverage = `In-sufficient data`;
             else {
@@ -142,7 +148,7 @@ module.exports = class BasicTimerUI extends SlashCommand {
                 averageTotal(weeklyAverages) * 1000
               )} [${toHours(averageTotal(weeklyAverages)).toFixed(
                 2
-              )} Hours]\n\nNumber of weeks used: ${weeklyAverages.length}`;
+              )} Hours]\n• Number of weeks: ${weeklyAverages.length}`;
             }
 
             // Getting the average start time (Old code)
@@ -180,18 +186,20 @@ module.exports = class BasicTimerUI extends SlashCommand {
 
             // The main message that stores all of the information and the third quadrant | Longest session
 
-            const messageDescription = `• Total Season Time: ${HRTotalTime} [${hrTotalTime}]\n• Average Session Time: ${avgTotalTime} [${rawTotalTime
-              .toFixed(2)
-              .toLocaleString()}]\n• Total Number of Sessions: ${
+            const messageDescription = `• Total Season Time: ${HRTotalTime} [${hrTotalTime} Hours]\n• Average Session Time: ${avgTotalTime} [${Number(
+              rawTotalTime.toFixed(2)
+            ).toLocaleString()} Seconds]\n• Total Number of Sessions: ${
               timerData.numberOfStarts
-            }\n\n• Total Break Time: ${HRBreakTime} [${hrBreakTime}]\n• Average Break Time: ${avgBreakTime} [${rawBreakTime
-              .toFixed(2)
-              .toLocaleString()}]\n• Total Number of Breaks: ${
+            }\n\n• Total Break Time: ${HRBreakTime} [${hrBreakTime} Hours]\n• Average Break Time: ${avgBreakTime} [${Number(
+              rawBreakTime.toFixed(2)
+            ).toLocaleString()} Seconds]\n• Total Number of Breaks: ${
               timerData.totalBreaks
             }\n\n• Longest Session Time: ${msToTime(
               timerData.longestSessionTime * 1000
             )}\n\n**Previous Session Details:**\n• Session Duration: ${HRSessionTime}\n• Session Date: ${UNIXSessionDate}\n• Difference from average: ${
-              msToTime(deltaTime) ? msToTime(deltaTime) : deltaTime.toFixed(2)
+              msToTime(deltaTime * 1000)
+                ? msToTime(deltaTime * 1000)
+                : Number(deltaTime.toFixed(2)).toLocaleString() + ` Seconds`
             }\n\n• Average Start Time: ${displayAverageStartTime} [GMT +2]\n• Average Session Time per Week: ${displayWeeklyTimeAverage}`;
 
             const displayMessageEmbed = new MessageEmbed()
@@ -199,7 +207,7 @@ module.exports = class BasicTimerUI extends SlashCommand {
                 `${randomTitleText} | ${
                   timerData.seasonName
                     ? timerData.seasonName
-                    : "No Season Name Set"
+                    : "No Semester Name Set"
                 }`
               )
               .setDescription(`${messageDescription}`)
@@ -234,7 +242,9 @@ module.exports = class BasicTimerUI extends SlashCommand {
             const hrTotalTime = Math.round(timerData.timeSpent / 3600);
 
             let avgTotalTime = timerData.timeSpent / timerData.numberOfStarts;
-            let rawTotalTime = timerData.timeSpent / timerData.numberOfStarts;
+            let rawTotalTime = Number(
+              (timerData.timeSpent / timerData.numberOfStarts).toFixed(3)
+            );
 
             if (!msToTime(avgTotalTime * 1000)) {
               avgTotalTime = `In-sufficient data`;
@@ -246,7 +256,9 @@ module.exports = class BasicTimerUI extends SlashCommand {
             const hrBreakTime = Math.round(timerData.breakTime / 3600);
 
             let avgBreakTime = timerData.breakTime / timerData.totalBreaks;
-            let rawBreakTime = timerData.breakTime / timerData.totalBreaks;
+            let rawBreakTime = Number(
+              (timerData.breakTime / timerData.totalBreaks).toFixed(3)
+            );
 
             if (!msToTime(avgBreakTime * 1000)) {
               avgBreakTime = `In-sufficient data`;
@@ -264,23 +276,23 @@ module.exports = class BasicTimerUI extends SlashCommand {
                 timerData.lastSessionDate / 1000
               )}:F>, <t:${Math.round(timerData.lastSessionDate / 1000)}:R>`;
               // By switching this to true, we can tell the system that a previous session exists so it can display it
-              deltaTime = timerData.lastSessionTime - rawTotalTime;
+              deltaTime = Number(
+                (timerData.lastSessionTime - rawTotalTime).toFixed(3)
+              );
             } else {
               HRSessionTime = `In-sufficient data`;
               UNIXSessionDate = `In-sufficient data`;
               deltaTime = `In-sufficient data`;
             }
 
-            const messageDescription = `• Total Season Time: ${HRTotalTime} [${hrTotalTime}]\n• Average Session Time: ${avgTotalTime} [${rawTotalTime
-              .toFixed(2)
-              .toLocaleString()}]\n• Total Number of Sessions: ${
+            const messageDescription = `• Total Season Time: ${HRTotalTime} [${hrTotalTime.toLocaleString()} Hours]\n• Average Session Time: ${avgTotalTime} [${rawTotalTime.toLocaleString()} Seconds]\n• Total Number of Sessions: ${
               timerData.numberOfStarts
-            }\n\n• Total Break Time: ${HRBreakTime} [${hrBreakTime}]\n• Average Break Time: ${avgBreakTime} [${rawBreakTime
-              .toFixed(2)
-              .toLocaleString()}]\n• Total Number of Breaks: ${
+            }\n\n• Total Break Time: ${HRBreakTime} [${hrBreakTime.toLocaleString()} Hours]\n• Average Break Time: ${avgBreakTime} [${rawBreakTime.toLocaleString()} Seconds]\n• Total Number of Breaks: ${
               timerData.totalBreaks
             }\n\n**Previous Session Details:**\n• Session Duration: ${HRSessionTime}\n• Session Date: ${UNIXSessionDate}\n• Difference from average: ${
-              msToTime(deltaTime) ? msToTime(deltaTime) : deltaTime.toFixed(2)
+              msToTime(deltaTime * 1000)
+                ? msToTime(deltaTime * 1000)
+                : deltaTime.toLocaleString() + ` Seconds`
             }`;
 
             const randomMessages = [
