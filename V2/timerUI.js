@@ -192,7 +192,7 @@ module.exports = class BasicTimerUI extends SlashCommand {
               timerData.longestSessionTime * 1000
             )}\n\n**Previous Session Details:**\n• Session Duration: ${HRSessionTime}\n• Session Date: ${UNIXSessionDate}\n• Difference from average: ${
               msToTime(deltaTime) ? msToTime(deltaTime) : deltaTime.toFixed(2)
-            }\n\n• Average Start Time: ${displayAverageStartTime}\n• Average Session Time per Week: ${displayWeeklyTimeAverage}`;
+            }\n\n• Average Start Time: ${displayAverageStartTime} [GMT +2]\n• Average Session Time per Week: ${displayWeeklyTimeAverage}`;
 
             const displayMessageEmbed = new MessageEmbed()
               .setTitle(
@@ -403,6 +403,8 @@ module.exports = class BasicTimerUI extends SlashCommand {
               return timerData.updateOne({
                 numberOfStarts: 0,
                 timeSpent: 0,
+                seasonLevel: 1,
+                seasonXP: 1,
                 longestSessionTime: null,
                 sessionLengths: [],
                 startTime: [],
@@ -487,7 +489,7 @@ module.exports = class BasicTimerUI extends SlashCommand {
               .setTitle(`⚠️ Confirmation required`)
               .setColor(colours.DEFAULT)
               .setDescription(
-                `Please use the buttons below to confirm or deny this action. [Season reset & Data delete]`
+                `Please use the buttons below to confirm or deny this action. [Season reset & Data delete, this includes season XP]`
               );
 
             await interaction.reply({
@@ -543,6 +545,8 @@ module.exports = class BasicTimerUI extends SlashCommand {
                   seasonName: null,
                   numberOfStarts: 0,
                   timeSpent: 0,
+                  seasonLevel: 1,
+                  seasonXP: 1,
                   longestSessionTime: null,
                   sessionLengths: [],
                   lastSessionTime: null,
