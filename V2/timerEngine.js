@@ -114,31 +114,27 @@ module.exports = (client) => {
     // Function that gives the user XP dependant on the time spent
 
     /**
-     *
      * @param {time} - Used to calculate the XP given, every 5 minutes is 10 XP
      */
 
     function calculateXP(time) {
-      let givenXP = 0;
-      for (
-        let remainingTime = time;
-        remainingTime < 5;
-        remainingTime = remainingTime - 5
-      ) {
-        givenXP = givenXP + 10;
-      }
-      return givenXP;
+      return Math.floor(time / 5) * 10;
     }
 
     // Function from GBF's engine that calculates the levels given
+
+    /**
+     * @param {currentRank} - The user's current level
+     * @param {currentRP} - The user's XP before any additions
+     * @param {addedRP} - currentRP + the XP rewarded
+     * @returns - [Boolean if the user has ranked up [0], Number of level ups [1], Remaining XP that was extra [2]]
+     */
 
     function checkRank(currentRank, currentRP, addedRP) {
       let addedLevels = 0;
       let hasRankedUp = false;
 
       let requiredRP = xpRequired(currentRank + addedLevels, currentRP);
-
-      if (currentRank >= 5000) return;
 
       if (addedRP > requiredRP) {
         hasRankedUp = true;
@@ -157,7 +153,6 @@ module.exports = (client) => {
         }
       }
       if (Math.abs(remainingRP) !== remainingRP) remainingRP = 0;
-      if (addedLevels + currentRank >= 5000) addedLevels--;
       return [hasRankedUp, addedLevels, remainingRP];
     }
 
@@ -409,6 +404,119 @@ module.exports = (client) => {
         )}`;
       } else displayDeltaAverageTime = `${msToTime(deltaAverageTime * 1000)}`;
 
+      // Calculating the XP given
+
+      const rewardedXP = Math.round(calculateXP(timeElapsed / 60));
+
+      // Checking if the user leveled up or not
+
+      const hasRankedUpSeason = checkRank(
+        timerData.seasonLevel,
+        timerData.seasonXP,
+        timerData.seasonXP + rewardedXP
+      );
+
+      const hasRankedUpAccount = checkRank(
+        timerData.accountLevel,
+        timerData.accountXP,
+        timerData.seasonXP + rewardedXP
+      );
+
+      const leveledUpMessage = new MessageEmbed()
+        .setTitle(`${emojis.ParrotDance} Ranked Up`)
+        .setColor(colours.DEFAULT);
+
+      let hasRankedUpMessage = ``;
+
+      // If the user's seasonal level has increased
+
+      // Creating a variable to determine if we send the level up message or not
+
+      let sendRankUp = false;
+
+      // Creating a progress bar
+
+      let seasonProgressBar;
+
+      const percentageSeasonComplete =
+        (hasRankedUpSeason[2] / xpRequired(timerData.seasonLevel + 2)) * 100;
+
+      if (percentageSeasonComplete >= 50 && percentageSeasonComplete < 90)
+        seasonProgressBar = `${emojis.leftFull}${emojis.middleFull}${emojis.rightEmpty}`;
+      else if (percentageSeasonComplete >= 25 && percentageSeasonComplete < 50)
+        seasonProgressBar = `${emojis.leftFull}${emojis.middleEmpty}${emojis.rightEmpty}`;
+      else if (percentageSeasonComplete >= 99)
+        seasonProgressBar = `${emojis.leftFull}${emojis.middleFull}${emojis.rightFull}`;
+      else if (percentageSeasonComplete < 25)
+        seasonProgressBar = `${emojis.leftEmpty}${emojis.middleEmpty}${emojis.rightEmpty}`;
+
+      if (hasRankedUpSeason[0] === true) {
+        hasRankedUpMessage =
+          hasRankedUpMessage +
+          `• New Season Level: \`${
+            timerData.seasonLevel + 1
+          }\`\n• Season XP: \`${
+            hasRankedUpSeason[2]
+          }\`\n• XP required to reach level ${
+            timerData.seasonLevel + 2
+          }: \`${xpRequired(
+            timerData.seasonLevel + 2
+          ).toLocaleString()}\`\n• Season Level Progress: ${seasonProgressBar} \`[${percentageSeasonComplete.toFixed(
+            2
+          )} %]\`\n\n`;
+
+        sendRankUp = true;
+
+        await timerData.updateOne({
+          seasonLevel: timerData.seasonLevel + 1,
+          seasonXP: Number(hasRankedUpSeason[2])
+        });
+      }
+
+      // Doing the same thing but for the account level
+
+      let accountProgressBar;
+
+      const percentageAccountComplete =
+        (hasRankedUpAccount[2] / xpRequired(timerData.accountLevel + 2)) * 100;
+
+      if (percentageAccountComplete >= 50 && percentageAccountComplete < 90)
+        accountProgressBar = `${emojis.leftFull}${emojis.middleFull}${emojis.rightEmpty}`;
+      else if (
+        percentageAccountComplete >= 25 &&
+        percentageAccountComplete < 50
+      )
+        accountProgressBar = `${emojis.leftFull}${emojis.middleEmpty}${emojis.rightEmpty}`;
+      else if (percentageAccountComplete >= 99)
+        accountProgressBar = `${emojis.leftFull}${emojis.middleFull}${emojis.rightFull}`;
+      else if (percentageAccountComplete < 25)
+        accountProgressBar = `${emojis.leftEmpty}${emojis.middleEmpty}${emojis.rightEmpty}`;
+
+      if (hasRankedUpAccount[0] === true) {
+        hasRankedUpMessage =
+          hasRankedUpMessage +
+          `• New Account Level: \`${
+            timerData.accountLevel + 1
+          }\`\n• Account XP: \`${
+            hasRankedUpAccount[2]
+          }\`\n• XP required to reach level ${
+            timerData.accountLevel + 2
+          }: \`${xpRequired(
+            timerData.accountLevel + 2
+          ).toLocaleString()}\`\n• Account Level Progress: ${accountProgressBar} \`[${percentageAccountComplete.toFixed(
+            2
+          )} %]\``;
+
+        sendRankUp = true;
+
+        await timerData.updateOne({
+          accountLevel: timerData.seasonLevel + 1,
+          accountXP: Number(hasRankedUpSeason[2])
+        });
+      }
+
+      leveledUpMessage.setDescription(`${hasRankedUpMessage}`);
+
       // Making the description here so it's easier to update
 
       const embedDescription = `• Time Elapsed: ${msToTime(
@@ -431,7 +539,9 @@ module.exports = (client) => {
         timerData.sessionBreaks
       }\n\n• Average Session Time Movement: ${displayDeltaAverageTime} [${Number(
         deltaAverageTime.toFixed(2)
-      ).toLocaleString()} Seconds]`;
+      ).toLocaleString()} Seconds]\n\n• XP rewarded: ${Number(
+        rewardedXP.toFixed(2)
+      ).toLocaleString()}`;
 
       // Updating the data to the DB & resetting the timer
 
@@ -464,8 +574,226 @@ module.exports = (client) => {
         components: [mainButtonsRowDA]
       });
 
+      if (sendRankUp === true) {
+        await interaction.reply({
+          content: `<@${timerData.userID}>`,
+          embeds: [leveledUpMessage]
+        });
+
+        return interaction.followUp({
+          embeds: [sessionStats]
+        });
+      } else
+        return interaction.reply({
+          embeds: [sessionStats]
+        });
+    } else if (interaction.customId === "pauseTimer") {
+      const statusCheck = checkUser(
+        timerData,
+        originalMessage,
+        messageOwner,
+        interaction
+      );
+
+      if (statusCheck === "404")
+        return interaction.reply({
+          embeds: [noAccount],
+          ephemeral: true
+        });
+
+      if (statusCheck === "403")
+        return interaction.reply({
+          embeds: [noMessageData],
+          ephemeral: true
+        });
+
+      if (statusCheck === "404-1") {
+        await timerData.updateOne({
+          messageID: null
+        });
+
+        return interaction.reply({
+          embeds: [noMessage],
+          ephemeral: true
+        });
+      }
+
+      if (statusCheck === "403-1") {
+        return interaction.reply({
+          embeds: [invalidPermissions],
+          ephemeral: true
+        });
+      }
+
+      // Creating buttons with an un-pause button
+
+      /**
+       * @UP - Unpause Button
+       */
+
+      const mainButtonsRowUP = new MessageActionRow().addComponents([
+        new MessageButton()
+          .setCustomId("startTimer")
+          .setDisabled(true)
+          .setEmoji("🕜")
+          .setLabel("Start Timer")
+          .setStyle("SECONDARY"),
+        new MessageButton()
+          .setCustomId("unpauseTimer")
+          .setEmoji("⏰")
+          .setLabel("Un-pause Timer")
+          .setStyle("SECONDARY"),
+        new MessageButton()
+          .setCustomId("stopTimer")
+          .setDisabled(true)
+          .setEmoji("🕛")
+          .setLabel("Stop Timer")
+          .setStyle("SECONDARY")
+      ]);
+
+      // Checking if the timer is already paused
+
+      const timerAlreadyPaused = new MessageEmbed()
+        .setTitle(`${emojis.ERROR} You can't do that`)
+        .setColor(colours.ERRORRED)
+        .setDescription(`The timer is already paused.`);
+
+      if (timerData.breakTimerStart) {
+        await originalMessage.edit({
+          components: [mainButtonsRowUP]
+        });
+
+        return interaction.reply({
+          embeds: [timerAlreadyPaused],
+          ephemeral: true
+        });
+      }
+
+      // Adding the data to the DB
+
+      await timerData.updateOne({
+        breakTimerStart: new Date(Date.now()),
+        sessionBreaks: timerData.sessionBreaks + 1,
+        totalBreaks: timerData.totalBreaks + 1
+      });
+
+      const timerPaused = new MessageEmbed()
+        .setTitle(`${emojis.VERIFY} Success`)
+        .setColor(colours.DEFAULT)
+        .setDescription(
+          `The timer has been paused, time elapsed from now till un-pause time won't be counted.\nTo un-pause use the buttons on the [original message](https://discord.com/channels/${interaction.guild.id}/${interaction.channel.id}/${timerData.messageID} "Easter egg number 2!")`
+        );
+
+      await originalMessage.edit({
+        components: [mainButtonsRowUP]
+      });
+
       return interaction.reply({
-        embeds: [sessionStats]
+        embeds: [timerPaused]
+      });
+    } else if (interaction.customId === "unpauseTimer") {
+      const statusCheck = checkUser(
+        timerData,
+        originalMessage,
+        messageOwner,
+        interaction
+      );
+
+      if (statusCheck === "404")
+        return interaction.reply({
+          embeds: [noAccount],
+          ephemeral: true
+        });
+
+      if (statusCheck === "403")
+        return interaction.reply({
+          embeds: [noMessageData],
+          ephemeral: true
+        });
+
+      if (statusCheck === "404-1") {
+        await timerData.updateOne({
+          messageID: null
+        });
+
+        return interaction.reply({
+          embeds: [noMessage],
+          ephemeral: true
+        });
+      }
+
+      if (statusCheck === "403-1") {
+        return interaction.reply({
+          embeds: [invalidPermissions],
+          ephemeral: true
+        });
+      }
+
+      // Checking if the timer is paused
+
+      const timerNotPaused = new MessageEmbed()
+        .setTitle(`${emojis.ERROR} You can't do that`)
+        .setColor(colours.ERRORRED)
+        .setDescription(`The timer is not paused.`);
+
+      const mainButtonsRowDS = new MessageActionRow().addComponents([
+        new MessageButton()
+          .setCustomId("startTimer")
+          .setDisabled(true)
+          .setEmoji("🕜")
+          .setLabel("Start Timer")
+          .setStyle("SECONDARY"),
+        new MessageButton()
+          .setCustomId("pauseTimer")
+          .setEmoji("⏰")
+          .setLabel("Pause Timer")
+          .setStyle("SECONDARY"),
+        new MessageButton()
+          .setCustomId("stopTimer")
+          .setEmoji("🕛")
+          .setLabel("Stop Timer")
+          .setStyle("SECONDARY")
+      ]);
+
+      if (!timerData.breakTimerStart) {
+        await originalMessage.edit({
+          components: [mainButtonsRowDS]
+        });
+
+        return interaction.reply({
+          embeds: [timerNotPaused],
+          ephemeral: true
+        });
+      }
+
+      // Calculating the break time
+
+      const timeElapsed = Math.abs(
+        (Date.now() - timerData.breakTimerStart.getTime()) / 1000
+      ).toFixed(3);
+
+      // Adding that data to the DB
+
+      await timerData.updateOne({
+        sessionBreakTime: timerData.sessionBreakTime + timeElapsed,
+        breakTimerStart: null
+      });
+
+      const timerUnpaused = new MessageEmbed()
+        .setTitle(`${emojis.VERIFY} Success`)
+        .setColor(colours.DEFAULT)
+        .setDescription(
+          `Session timer has been un-paused\n\n• Break Time: ${msToTime(
+            Math.abs(timeElapsed * 1000)
+          )} [${timeElapsed.toFixed(2)} Seconds]`
+        );
+
+      await originalMessage.edit({
+        components: [mainButtonsRowDS]
+      });
+
+      return interaction.reply({
+        embeds: [timerUnpaused]
       });
     }
   });
