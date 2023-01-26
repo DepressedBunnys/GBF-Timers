@@ -30,7 +30,7 @@ module.exports = class BasicTimerUI extends SlashCommand {
       userPermission: [],
       botPermission: [""],
       cooldown: 0,
-      development: true,
+      development: false,
       subcommands: {
         stats: {
           description: "Get the stats of the current tracking season",
@@ -57,17 +57,20 @@ module.exports = class BasicTimerUI extends SlashCommand {
               .setTitle(`${emojis.ERROR} You can't do that`)
               .setColor(colours.ERRORRED)
               .setDescription(
-                `I couldn't find any data matching your user ID.\n\nCreate a new seasonal account using <>`
+                `I couldn't find any data matching your user ID.\n\nCreate a new seasonal account using </timer registry:1068210539689414777>`
               );
 
-            if (!timerData)
+            if (!timerData || (timerData && !timerData.seasonName))
               return interaction.reply({
                 embeds: [noAccount],
                 ephemeral: true
               });
 
             // First quadrant | Basic data
-            const HRTotalTime = msToTime(timerData.timeSpent * 1000);
+            const HRTotalTime =
+              timerData.timeSpent > 0
+                ? msToTime(timerData.timeSpent * 1000)
+                : `0 seconds`;
             const hrTotalTime = Math.round(timerData.timeSpent / 3600);
             // Getting the average time by dividing the total time by number of starts
             let avgTotalTime = timerData.timeSpent / timerData.numberOfStarts;
@@ -186,6 +189,77 @@ module.exports = class BasicTimerUI extends SlashCommand {
             const randomTitleText =
               randomMessages[Math.floor(Math.random() * randomMessages.length)];
 
+            // Sixth quadrant || Account levels
+
+            // Getting the required XP to rank up, XP till that & progress bar
+
+            // Function that calculates the amount of XP required to level up
+            function xpRequired(level) {
+              return level * 400 + (level - 1) * 200;
+            }
+
+            const seasonRank =
+              timerData.seasonLevel > 0 ? timerData.seasonLevel : 1;
+
+            const accountRank =
+              timerData.accountLevel > 0 ? timerData.accountLevel : 1;
+
+            const accountXPrequired = xpRequired(accountRank + 1);
+            const seasonXPrequired = xpRequired(seasonRank + 1);
+
+            // Function that calculates the hours required till the next rank since every 5 minutes is 10 XP
+
+            function hoursRequired(XP) {
+              let minutesFunction = (5 * XP) / 10;
+              return minutesFunction / 60;
+            }
+
+            const hoursNeededAccount = Math.abs(
+              hoursRequired(accountXPrequired - timerData.accountXP)
+            );
+            const hoursNeededSeason = Math.abs(
+              hoursRequired(seasonXPrequired - timerData.seasonXP)
+            );
+
+            // Code from timerEngine
+
+            let seasonProgressBar;
+
+            const percentageSeasonComplete =
+              (timerData.seasonXP / seasonXPrequired) * 100;
+
+            if (percentageSeasonComplete >= 50 && percentageSeasonComplete < 90)
+              seasonProgressBar = `${emojis.leftFull}${emojis.middleFull}${emojis.rightEmpty}`;
+            else if (
+              percentageSeasonComplete >= 25 &&
+              percentageSeasonComplete < 50
+            )
+              seasonProgressBar = `${emojis.leftFull}${emojis.middleEmpty}${emojis.rightEmpty}`;
+            else if (percentageSeasonComplete >= 99)
+              seasonProgressBar = `${emojis.leftFull}${emojis.middleFull}${emojis.rightFull}`;
+            else if (percentageSeasonComplete < 25)
+              seasonProgressBar = `${emojis.leftEmpty}${emojis.middleEmpty}${emojis.rightEmpty}`;
+
+            let accountProgressBar;
+
+            const percentageAccountComplete =
+              (timerData.accountXP / accountXPrequired) * 100;
+
+            if (
+              percentageAccountComplete >= 50 &&
+              percentageAccountComplete < 90
+            )
+              accountProgressBar = `${emojis.leftFull}${emojis.middleFull}${emojis.rightEmpty}`;
+            else if (
+              percentageAccountComplete >= 25 &&
+              percentageAccountComplete < 50
+            )
+              accountProgressBar = `${emojis.leftFull}${emojis.middleEmpty}${emojis.rightEmpty}`;
+            else if (percentageAccountComplete >= 99)
+              accountProgressBar = `${emojis.leftFull}${emojis.middleFull}${emojis.rightFull}`;
+            else if (percentageAccountComplete < 25)
+              accountProgressBar = `${emojis.leftEmpty}${emojis.middleEmpty}${emojis.rightEmpty}`;
+
             // The main message that stores all of the information and the third quadrant | Longest session
 
             const messageDescription = `• Total Season Time: ${HRTotalTime} [${hrTotalTime} Hours]\n• Average Session Time: ${avgTotalTime} [${Number(
@@ -196,13 +270,35 @@ module.exports = class BasicTimerUI extends SlashCommand {
               rawBreakTime.toFixed(2)
             ).toLocaleString()} Seconds]\n• Total Number of Breaks: ${
               timerData.totalBreaks
-            }\n\n• Longest Session Time: ${msToTime(
-              timerData.longestSessionTime * 1000
-            )}\n\n**Previous Session Details:**\n• Session Duration: ${HRSessionTime}\n• Session Date: ${UNIXSessionDate}\n• Difference from average: ${
+            }\n\n• Longest Session Time: ${
+              timerData.longestSessionTime
+                ? msToTime(timerData.longestSessionTime * 1000)
+                : `In-sufficient data`
+            }\n\n**Previous Session Details:**\n• Session Duration: ${HRSessionTime}\n• Session Date: ${UNIXSessionDate}\n• Difference from average: ${
               msToTime(deltaTime * 1000)
                 ? msToTime(deltaTime * 1000)
-                : Number(deltaTime.toFixed(2)).toLocaleString() + ` Seconds`
-            }\n\n• Average Start Time: ${displayAverageStartTime} [GMT +2]\n• Average Session Time per Week: ${displayWeeklyTimeAverage}`;
+                : `In-sufficient data`
+            }\n\n• Average Start Time: ${displayAverageStartTime} [GMT +2]\n• Average Session Time per Week: ${displayWeeklyTimeAverage}\n\n• Season Level: ${
+              timerData.seasonLevel
+            }\n• XP to reach level ${
+              timerData.seasonLevel + 1
+            }: ${timerData.seasonXP.toLocaleString()} / ${seasonXPrequired.toLocaleString()}\n${seasonProgressBar} [${percentageSeasonComplete.toFixed(
+              2
+            )}%]\n• Estimated time till next seasonal level up: ${Number(
+              hoursNeededSeason.toFixed(2)
+            ).toLocaleString()} Hours [${Number(
+              (hoursNeededSeason * 60).toFixed(2)
+            ).toLocaleString()} Minutes]\n\n• Account Level: ${
+              timerData.accountLevel
+            }\n• XP to reach level ${
+              timerData.accountLevel + 1
+            }: ${timerData.accountXP.toLocaleString()} / ${accountXPrequired.toLocaleString()}\n${accountProgressBar} [${percentageAccountComplete.toFixed(
+              2
+            )}%]\n• Estimated time till next account level up: ${Number(
+              hoursNeededAccount.toFixed(2)
+            ).toLocaleString()} Hours [${Number(
+              (hoursNeededAccount * 60).toFixed(2)
+            ).toLocaleString()} Minutes]`;
 
             const displayMessageEmbed = new MessageEmbed()
               .setTitle(
@@ -213,14 +309,17 @@ module.exports = class BasicTimerUI extends SlashCommand {
                 }`
               )
               .setDescription(`${messageDescription}`)
-              .setColor(colours.DEFAULT);
+              .setColor(colours.DEFAULT)
+              .setFooter({
+                text: `Encountered a bug or want to request a feature? Contact support, /bot invite and choose support server.`
+              });
 
             return interaction.reply({
               embeds: [displayMessageEmbed]
             });
           }
         },
-        initate: {
+        initiate: {
           description: "Start a timer for the current season",
           execute: async ({ client, interaction }) => {
             const timerData = await timerSchema.findOne({
@@ -231,16 +330,19 @@ module.exports = class BasicTimerUI extends SlashCommand {
               .setTitle(`⚠️ You cannot do that ⚠️`)
               .setColor(colours.ERRORRED)
               .setDescription(
-                `I couldn't find any data matching your user ID.\n\nCreate a new seasonal account using <>`
+                `I couldn't find any data matching your user ID.\n\nCreate a new seasonal account using </timer registry:1068210539689414777>`
               );
 
-            if (!timerData)
+            if (!timerData || (timerData && !timerData.seasonName))
               return interaction.reply({
                 embeds: [noAccount],
                 ephemeral: true
               });
 
-            const HRTotalTime = msToTime(timerData.timeSpent * 1000);
+            const HRTotalTime =
+              timerData.timeSpent > 0
+                ? msToTime(timerData.timeSpent * 1000)
+                : `In-sufficient data`;
             const hrTotalTime = Math.round(timerData.timeSpent / 3600);
 
             let avgTotalTime = timerData.timeSpent / timerData.numberOfStarts;
@@ -384,7 +486,7 @@ module.exports = class BasicTimerUI extends SlashCommand {
               .setTitle(`${emojis.ERROR} You can't do that`)
               .setColor(colours.ERRORRED)
               .setDescription(
-                `You already have existing season data, you can reset and create a new profile using <>`
+                `You already have existing season data, you can reset and create a new profile using </timer registry:1068210539689414777>`
               );
 
             // Checking if there's an existing season
@@ -403,7 +505,7 @@ module.exports = class BasicTimerUI extends SlashCommand {
               .setDescription(
                 `Registry Time:\n<t:${Math.floor(
                   Date.now() / 1000
-                )}:F>\n\nSuccessfully registered ${seasonName} as a new season/semester, best of luck.\n\nYou can reset using <>\nThis will delete all of the previously saved data ⚠️`
+                )}:F>\n\nSuccessfully registered ${seasonName} as a new season/semester, best of luck.\n\nYou can reset using </timer reset:1068210539689414777>\nThis will delete all of the previously saved data ⚠️`
               );
 
             // Checking if there's an account but no existing season
@@ -446,8 +548,7 @@ module.exports = class BasicTimerUI extends SlashCommand {
           }
         },
         reset: {
-          description:
-            "Reset the current season [THIS WILL DELETE ALL OF YOUR DATA]",
+          description: "Reset the current semester stats",
           execute: async ({ client, interaction }) => {
             const timerData = await timerSchema.findOne({
               userID: interaction.user.id
@@ -459,10 +560,10 @@ module.exports = class BasicTimerUI extends SlashCommand {
               .setTitle(`⚠️ You cannot do that ⚠️`)
               .setColor(colours.ERRORRED)
               .setDescription(
-                `I couldn't find any data matching your user ID.\n\nCreate a new seasonal account using <>`
+                `I couldn't find any data matching your user ID.\n\nCreate a new seasonal account using </timer registry:1068210539689414777>`
               );
 
-            if (!timerData)
+            if (!timerData || (timerData && !timerData.seasonName))
               return interaction.reply({
                 embeds: [noAccount],
                 ephemeral: true
@@ -504,7 +605,7 @@ module.exports = class BasicTimerUI extends SlashCommand {
               .setTitle(`⚠️ Confirmation required`)
               .setColor(colours.DEFAULT)
               .setDescription(
-                `Please use the buttons below to confirm or deny this action. [Season reset & Data delete, this includes season XP]`
+                `Please use the buttons below to confirm or deny this action. [Season reset, this includes season XP]`
               );
 
             await interaction.reply({
@@ -543,7 +644,7 @@ module.exports = class BasicTimerUI extends SlashCommand {
 
                 // Returning and closing the collector
 
-                return collector.stop();
+                return collector.stop({ reason: "308" });
               } else if (i.customId === "confirmTimerDelete") {
                 // Telling the user the data is being deleted
 
@@ -551,24 +652,29 @@ module.exports = class BasicTimerUI extends SlashCommand {
                   .setTitle(`${emojis.VERIFY} Success`)
                   .setColor(colours.DEFAULT)
                   .setDescription(
-                    `Your data has been deleted, to create a new season use <>`
+                    `Your data has been deleted, to create a new season use </timer registry:1068210539689414777>`
                   );
 
                 // Deleting the data
 
                 await timerData.updateOne({
+                  messageID: null,
                   seasonName: null,
                   numberOfStarts: 0,
                   timeSpent: 0,
                   seasonLevel: 1,
-                  seasonXP: 1,
+                  seasonXP: 0,
                   longestSessionTime: null,
                   sessionLengths: [],
                   lastSessionTime: null,
                   lastSessionDate: null,
                   breakTime: 0,
                   totalBreaks: 0,
-                  startTime: []
+                  startTime: [],
+                  intiationTime: null,
+                  sessionBreakTime: 0,
+                  sessionBreaks: 0,
+                  breakTimerStart: null
                 });
 
                 await interaction.editReply({
@@ -576,14 +682,17 @@ module.exports = class BasicTimerUI extends SlashCommand {
                   components: [confirmationButtonsD]
                 });
                 // Closing the collector
-                return collector.stop();
+                return collector.stop({
+                  reason: "308"
+                });
               }
             });
 
             // It is very likely that the user did not click any of the buttons, in that event we will return after the 5 minute timer is done
 
-            collector.on("end", (i) => {
+            collector.on("end", (collected, reason) => {
               // Ending the command and disabling the buttons
+              if (reason !== "308") return;
               return interaction.editReply({
                 content: `Timed out.`,
                 components: [confirmationButtonsD]
@@ -602,10 +711,10 @@ module.exports = class BasicTimerUI extends SlashCommand {
               .setTitle(`⚠️ You cannot do that ⚠️`)
               .setColor(colours.ERRORRED)
               .setDescription(
-                `I couldn't find any data matching your user ID.\n\nCreate a new seasonal account using <>`
+                `I couldn't find any data matching your user ID.\n\nCreate a new seasonal account using </timer registry:1068210539689414777>`
               );
 
-            if (!timerData)
+            if (!timerData || (timerData && !timerData.seasonName))
               return interaction.reply({
                 embeds: [noAccount],
                 ephemeral: true
@@ -658,6 +767,24 @@ module.exports = class BasicTimerUI extends SlashCommand {
 
             return interaction.reply({
               embeds: [sessionStats]
+            });
+          }
+        },
+        help: {
+          description: "Find out how to use GBF Timers",
+          execute: async ({ client, interaction }) => {
+            const helpEmbed = new MessageEmbed()
+              .setTitle(`${emojis.LOGOTRANS} GBF Timers`)
+              .setColor(colours.DEFAULT)
+              .setDescription(`1. Start by registering, this can be done for **free** using  </timer registry:1068210539689414777>
+            2. Once registered, you can start a new session using </timer initiate:1068210539689414777>, buttons will be displayed that you can use to start, stop or pause the timer!
+            3. Once you finished your session, you can view your stats using </timer stats:1068210539689414777>
+            
+            Semester ended and want to reset? Use </timer reset:1068210539689414777>, this will delete your previous data and you can register a new account for free again`);
+
+            return interaction.reply({
+              embeds: [helpEmbed],
+              ephemeral: true
             });
           }
         }
