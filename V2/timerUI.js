@@ -254,7 +254,10 @@ module.exports = class BasicTimerUI extends SlashCommand {
             } else avgTotalTime = msToTime(avgTotalTime * 1000);
 
             // Second quadrant | Break data
-            const HRBreakTime = msToTime(timerData.breakTime * 1000);
+            const HRBreakTime =
+              timerData.breakTime > 0
+                ? msToTime(timerData.breakTime * 1000)
+                : `In-sufficient data`;
             const hrBreakTime = Math.round(timerData.breakTime / 3600);
 
             let avgBreakTime = timerData.breakTime / timerData.totalBreaks;
