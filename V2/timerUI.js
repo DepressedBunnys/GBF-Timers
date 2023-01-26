@@ -54,7 +54,7 @@ module.exports = class BasicTimerUI extends SlashCommand {
             });
 
             const noAccount = new MessageEmbed()
-              .setTitle(`⚠️ You cannot do that ⚠️`)
+              .setTitle(`${emojis.ERROR} You can't do that`)
               .setColor(colours.ERRORRED)
               .setDescription(
                 `I couldn't find any data matching your user ID.\n\nCreate a new seasonal account using <>`
@@ -83,7 +83,10 @@ module.exports = class BasicTimerUI extends SlashCommand {
             else avgTotalTime = msToTime(avgTotalTime * 1000);
 
             // Second quadrant | Break data
-            const HRBreakTime = msToTime(timerData.breakTime * 1000);
+            const HRBreakTime =
+              timerData.breakTime > 0
+                ? msToTime(timerData.breakTime * 1000)
+                : `In-sufficient data`;
             const hrBreakTime = Math.round(timerData.breakTime / 3600);
 
             let avgBreakTime = timerData.breakTime / timerData.totalBreaks;
@@ -145,8 +148,8 @@ module.exports = class BasicTimerUI extends SlashCommand {
             else {
               displayWeeklyTimeAverage = `${msToTime(
                 averageTotal(weeklyAverages) * 1000
-              )} [${toHours(averageTotal(weeklyAverages)).toFixed(
-                2
+              )} [${toHours(
+                averageTotal(weeklyAverages)
               )} Hours]\n• Number of weeks: ${weeklyAverages.length}`;
             }
 
@@ -159,9 +162,9 @@ module.exports = class BasicTimerUI extends SlashCommand {
               0
             );
 
-            averageStartTime = (
-              sumOfTimes / timerData.startTime.length
-            ).toFixed(2);
+            averageStartTime = Number(
+              (sumOfTimes / timerData.startTime.length).toFixed(2)
+            );
 
             let displayAverageStartTime;
 
@@ -351,9 +354,7 @@ module.exports = class BasicTimerUI extends SlashCommand {
               fetchReply: true
             });
 
-            // Adding the messsage ID to the database so we can later use it to edit the message in different modules
-
-            await timerData.updateOne({
+            return timerData.updateOne({
               messageID: initiateMessage.id
             });
           }
@@ -377,7 +378,7 @@ module.exports = class BasicTimerUI extends SlashCommand {
             });
 
             const existingAccount = new MessageEmbed()
-              .setTitle(`⚠️ You cannot do that ⚠️`)
+              .setTitle(`${emojis.ERROR} You can't do that`)
               .setColor(colours.ERRORRED)
               .setDescription(
                 `You already have existing season data, you can reset and create a new profile using <>`
@@ -394,12 +395,12 @@ module.exports = class BasicTimerUI extends SlashCommand {
             const seasonName = interaction.options.getString("season-name");
 
             const newSemesterSeason = new MessageEmbed()
-              .setTitle(`Registered ${emojis.VERIFY}`)
+              .setTitle(`${emojis.VERIFY} Registered`)
               .setColor(colours.DEFAULT)
               .setDescription(
-                `**Registry Time:**\n<t:${Math.floor(
+                `Registry Time:\n<t:${Math.floor(
                   Date.now() / 1000
-                )}:F>\n\nSuccessfully registered ${seasonName} as a new season/semester, best of luck.\n\nYou can reset using <>\n⚠️ This will delete all of the previously saved data ⚠️`
+                )}:F>\n\nSuccessfully registered ${seasonName} as a new season/semester, best of luck.\n\nYou can reset using <>\nThis will delete all of the previously saved data ⚠️`
               );
 
             // Checking if there's an account but no existing season
