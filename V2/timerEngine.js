@@ -49,7 +49,7 @@ module.exports = (client) => {
       .setTitle(`${emojis.ERROR} 404 Not Found`)
       .setColor(colours.ERRORRED)
       .setDescription(
-        `I couldn't find any data matching your user ID.\n\nCreate a new semester account using <>`
+        `I couldn't find any data matching your user ID.\n\nCreate a new semester account using </timer registry:1068210539689414777>.`
       );
 
     if (!timerData)
@@ -63,7 +63,9 @@ module.exports = (client) => {
     const noMessageData = new MessageEmbed()
       .setTitle(`${emojis.ERROR} 403 Forbidden`)
       .setColor(colours.ERRORRED)
-      .setDescription(`You can't use that button, to create your own use <>.`);
+      .setDescription(
+        `You can't use that button, to create your own use </timer initiate:1068210539689414777>.`
+      );
 
     // Fetching the original message
     const originalMessage = await interaction.channel.messages.fetch(
@@ -81,7 +83,7 @@ module.exports = (client) => {
       .setTitle(`${emojis.ERROR} 404-1 Not Found`)
       .setColor(colours.ERRORRED)
       .setDescription(
-        `The session initiation message tied to this account was not found, please use <> to start a new session or create a new initiation message.`
+        `The session initiation message tied to this account was not found, please use</timer initiate:1068210539689414777> to start a new session or create a new initiation message.`
       );
 
     // Checking if the user who used the button is the same user who used the command
@@ -89,7 +91,9 @@ module.exports = (client) => {
     const invalidPermissions = new MessageEmbed()
       .setTitle(`${emojis.ERROR} 403-1 Forbidden`)
       .setColor(colours.ERRORRED)
-      .setDescription(`You can't use that, create your own using <>.`);
+      .setDescription(
+        `You can't use that, create your own using </timer registry:1068210539689414777>.`
+      );
 
     function checkUser(data, message, originalUser, interaction) {
       let status;
@@ -111,6 +115,11 @@ module.exports = (client) => {
     function xpRequired(level) {
       return level * 400 + (level - 1) * 200;
     }
+
+    function xpRequiredAccount(level) {
+      return level * 800 + (level - 1) * 400;
+    }
+
     // Function that gives the user XP dependant on the time spent
 
     /**
@@ -478,7 +487,9 @@ module.exports = (client) => {
       let accountProgressBar;
 
       const percentageAccountComplete =
-        (hasRankedUpAccount[2] / xpRequired(timerData.accountLevel + 2)) * 100;
+        (hasRankedUpAccount[2] /
+          xpRequiredAccount(timerData.accountLevel + 2)) *
+        100;
 
       if (percentageAccountComplete >= 50 && percentageAccountComplete < 90)
         accountProgressBar = `${emojis.leftFull}${emojis.middleFull}${emojis.rightEmpty}`;
@@ -501,7 +512,7 @@ module.exports = (client) => {
             hasRankedUpAccount[2]
           }\`\n• XP required to reach level ${
             timerData.accountLevel + 2
-          }: \`${xpRequired(
+          }: \`${xpRequiredAccount(
             timerData.accountLevel + 2
           ).toLocaleString()}\`\n• Account Level Progress: ${accountProgressBar} \`[${percentageAccountComplete.toFixed(
             2
@@ -768,9 +779,11 @@ module.exports = (client) => {
 
       // Calculating the break time
 
-      const timeElapsed = Math.abs(
-        (Date.now() - timerData.breakTimerStart.getTime()) / 1000
-      ).toFixed(3);
+      const timeElapsed = Number(
+        Math.abs(
+          (Date.now() - timerData.breakTimerStart.getTime()) / 1000
+        ).toFixed(3)
+      );
 
       // Adding that data to the DB
 
@@ -784,8 +797,8 @@ module.exports = (client) => {
         .setColor(colours.DEFAULT)
         .setDescription(
           `Session timer has been un-paused\n\n• Break Time: ${msToTime(
-            Math.abs(timeElapsed * 1000)
-          )} [${timeElapsed.toFixed(2)} Seconds]`
+            timeElapsed * 1000
+          )} [${timeElapsed} Seconds]`
         );
 
       await originalMessage.edit({
