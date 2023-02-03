@@ -37,6 +37,9 @@ This is a temporary level that resets after each season/semester.
 2. Account level
 This is a permenant level.
 
+### Small Updates
+1. Added session topic
+
 ### Bug Fixes
 1. Fixed an issue where the pause command would run but never update the data to the DB.
 2. Fixed a bug where when multiple initiate messages would be present, the old ones would update.
@@ -58,6 +61,7 @@ This is a permenant level.
 18. Fixed a bug where system would mix the button users with the original command author.
 19. Fixed a bug where the system would give the wrong IDs.
 20. Fixed a bug that would stop the session info from running.
+21. Fixed a bug where the time would be negative if the break time was larger than the session duration
 
 GBF Timers is now available for public use and the source code is now open source.
 
