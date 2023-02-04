@@ -14,9 +14,7 @@ Can be used for:
 
 This program displays data like average start time, average session time, average break time, etc. these can be useful to find patterns and weakspots.
 
-## Re-write
-
-This system is being re-wrote to improve the code readability and general performance
+## To know more please check out the README in the [latest version](https://github.com/DepressedBunnys/GBF-Timers/tree/main/V2)
 
 
 ### Under GBF
