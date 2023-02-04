@@ -12,7 +12,7 @@ Your data is encrpyted using AES256-CBC [256-bit Advanced Encryption Standard in
 ## How to access for free
 [Click here](https://discord.com/api/oauth2/authorize?client_id=795361755223556116&permissions=1642787765494&scope=bot%20applications.commands) to invite GBF Timers to your server with the required permissions
 
-## New Features
+## New Main Features
 
 - Enhanced system performance and less loading times:
 This was done by greatly improving the code and general connections to the server.
@@ -39,6 +39,10 @@ This is a permenant level.
 
 ### Small Updates
 1. Added session topic
+2. Added change session topic
+3. Changed level up emoji
+4. Renamed season to semester
+5. Made leveling up easier for semester level and account level, 300 and 500 less respectively 
 
 ### Bug Fixes
 1. Fixed an issue where the pause command would run but never update the data to the DB.
@@ -62,6 +66,7 @@ This is a permenant level.
 19. Fixed a bug where the system would give the wrong IDs.
 20. Fixed a bug that would stop the session info from running.
 21. Fixed a bug where the time would be negative if the break time was larger than the session duration
+22. Fixed no embed colour for the timer info command
 
 GBF Timers is now available for public use and the source code is now open source.
 
