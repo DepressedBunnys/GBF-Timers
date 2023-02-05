@@ -43,6 +43,9 @@ This is a permenant level.
 3. Changed level up emoji
 4. Renamed season to semester
 5. Made leveling up easier for semester level and account level, 300 and 500 less respectively 
+6. Added average time between breaks
+7. Added semester recap in the reset command
+8. Added the help command in the registry command as a tutorial
 
 ### Bug Fixes
 1. Fixed an issue where the pause command would run but never update the data to the DB.
@@ -67,6 +70,9 @@ This is a permenant level.
 20. Fixed a bug that would stop the session info from running.
 21. Fixed a bug where the time would be negative if the break time was larger than the session duration
 22. Fixed no embed colour for the timer info command
+23. Fixed a bug that showed the s in units when the data was only 1
+24. Fixed a bug that didn't reset the session topic even after the session ended
+25. Fixed a bug that didn't reset the session topic in the reset command
 
 GBF Timers is now available for public use and the source code is now open source.
 
