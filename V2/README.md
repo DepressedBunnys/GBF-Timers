@@ -73,6 +73,7 @@ This is a permenant level.
 23. Fixed a bug that showed the s in units when the data was only 1
 24. Fixed a bug that didn't reset the session topic even after the session ended
 25. Fixed a bug that didn't reset the session topic in the reset command
+26. Fixed a display bug that showed "second" instead of "seconds" when the time would be more than 1
 
 GBF Timers is now available for public use and the source code is now open source.
 
