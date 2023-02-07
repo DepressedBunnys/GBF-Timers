@@ -29,6 +29,7 @@ const TimerSchema = new Schema(
       type: Date,
       default: null
     },
+    sessionTopic: String,
     numberOfStarts: {
       type: Number,
       default: 0
