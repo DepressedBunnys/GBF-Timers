@@ -7,8 +7,6 @@ Can be used for easier data analysis and better improvements due to easier acces
 
 ## V2
 
-GBF Timers V2 is going to be the faster, easier to use and the feature richer GBF timers, once it's fully complete it's going to be available for free public use.
-
-Will include many new features including data removal, instant data update, semester reset and more.
+GBF Timers is updating, the live version will be V2 and V1 will no longer be supported, for more information read the README.md in the main file and source code and major updates can be found in the V2 folder
 
 ## Under GBF
