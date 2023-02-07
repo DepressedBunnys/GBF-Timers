@@ -46,6 +46,7 @@ This is a permenant level.
 6. Added average time between breaks
 7. Added semester recap in the reset command
 8. Added the help command in the registry command as a tutorial
+9. Removed rounding and added thousandth seperator and break number in the un-pause logic
 
 ### Bug Fixes
 1. Fixed an issue where the pause command would run but never update the data to the DB.
