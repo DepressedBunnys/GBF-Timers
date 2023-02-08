@@ -78,6 +78,7 @@ This is a permenant level.
 24. Fixed a bug that didn't reset the session topic even after the session ended
 25. Fixed a bug that didn't reset the session topic in the reset command
 26. Fixed a display bug that showed "second" instead of "seconds" when the time would be more than 1
+27. Fixed a bug that would level up the user in both account and season fields if only one of them triggered
 
 GBF Timers is now available for public use and the source code is now open source.
 
