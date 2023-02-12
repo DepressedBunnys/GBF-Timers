@@ -50,6 +50,7 @@ This is a permenant level.
 7. Added semester recap in the reset command
 8. Added the help command in the registry command as a tutorial
 9. Removed rounding and added thousandth seperator and break number in the un-pause logic
+10. Changed weekly average time stat to use the newest week rather than all weeks combined
 
 ### Bug Fixes
 1. Fixed an issue where the pause command would run but never update the data to the DB.
@@ -79,6 +80,8 @@ This is a permenant level.
 25. Fixed a bug that didn't reset the session topic in the reset command
 26. Fixed a display bug that showed "second" instead of "seconds" when the time would be more than 1
 27. Fixed a bug that would level up the user in both account and season fields if only one of them triggered
+28. Fixed a bug that wouldn't add the session time to the database
+29. Fixed a bug that showed the weekly time stat with a large number of decimal points
 
 GBF Timers is now available for public use and the source code is now open source.
 
