@@ -82,6 +82,9 @@ This is a permenant level.
 27. Fixed a bug that would level up the user in both account and season fields if only one of them triggered
 28. Fixed a bug that wouldn't add the session time to the database
 29. Fixed a bug that showed the weekly time stat with a large number of decimal points
+30. Fixed a bug that would crash the system if the user's account level increased
+31. Fixed a bug that would start a new timer even if one is already active
+32. Fixed a bug that would give the wrong XP required for the user's account level
 
 GBF Timers is now available for public use and the source code is now open source.
 
