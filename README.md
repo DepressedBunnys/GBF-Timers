@@ -97,6 +97,7 @@ This is a permenant level.
 33. Fixed a bug that would give both coins and XP when claiming your daily reward
 34. Fixed a bug that would give no progress bar if the user passed a certain percentage point
 35. Fixed a bug that would look for an active session in the daily login command
+36. Fixed a bug that would not check if the user has enough XP to level up
 
 GBF Timers is now available for public use and the source code is now open source.
 
