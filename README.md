@@ -40,6 +40,12 @@ This is a temporary level that resets after each season/semester.
 2. Account level
 This is a permenant level.
 
+### Major Updates
+1. Daily login system 
+1.1. You can now earn rewards by logging in daily and claiming your daily reward, starting a session is not required. Reward increases proportionally with the streak.
+1.2. You can now earn XP and a new currency (dunkelCoins) through the daily login, making leveling up slightly easier
+1.3. Daily login streaks
+
 ### Small Updates
 1. Added session topic
 2. Added change session topic
@@ -51,6 +57,9 @@ This is a permenant level.
 8. Added the help command in the registry command as a tutorial
 9. Removed rounding and added thousandth seperator and break number in the un-pause logic
 10. Changed weekly average time stat to use the newest week rather than all weeks combined
+11. Increased the length of the progress bar
+12. Changed progress bar to have more realistic updates
+13. Moved repeated functions to a logic utils file to improve performance and help with code maintenance 
 
 ### Bug Fixes
 1. Fixed an issue where the pause command would run but never update the data to the DB.
@@ -85,6 +94,8 @@ This is a permenant level.
 30. Fixed a bug that would crash the system if the user's account level increased
 31. Fixed a bug that would start a new timer even if one is already active
 32. Fixed a bug that would give the wrong XP required for the user's account level
+33. Fixed a bug that would give both coins and XP when claiming your daily reward
+34. Fixed a bug that would give no progress bar if the user passed a certain percentage point
 
 GBF Timers is now available for public use and the source code is now open source.
 
@@ -93,7 +104,6 @@ GBF Timers is now available for public use and the source code is now open sourc
 - Added a level leaderboard
 - Cheater detection
 - Custom embed colouring
-- Streaks
 - Semester score
 
 ## Under GBF
