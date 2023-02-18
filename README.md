@@ -46,6 +46,10 @@ This is a permenant level.
 1.2. You can now earn XP and a new currency (dunkelCoins) through the daily login, making leveling up slightly easier
 1.3. Daily login streaks
 
+### Balance Updates
+1. Improved XP gained from 10 XP per 5 minutes to 150 XP per 5 minutes.
+This change was needed since the level grind became too "hardcore" where you needed 998 hours to reach level 100 from level 99
+
 ### Small Updates
 1. Added session topic
 2. Added change session topic
@@ -98,6 +102,8 @@ This is a permenant level.
 34. Fixed a bug that would give no progress bar if the user passed a certain percentage point
 35. Fixed a bug that would look for an active session in the daily login command
 36. Fixed a bug that would not check if the user has enough XP to level up
+37. Fixed a bug that would level up both account and semester if one of them leveled up
+38. Fixed a bug that would not save the new date when the user claimed the daily reward
 
 GBF Timers is now available for public use and the source code is now open source.
 
