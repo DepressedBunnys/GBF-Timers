@@ -49,6 +49,7 @@ This is a permenant level.
 ### Balance Updates
 1. Improved XP gained from 10 XP per 5 minutes to 150 XP per 5 minutes.
 This change was needed since the level grind became too "hardcore" where you needed 998 hours to reach level 100 from level 99
+2. XP gained buffed from 150 to 300 then to 180 per 5 minutes
 
 ### Small Updates
 1. Added session topic
@@ -104,6 +105,7 @@ This change was needed since the level grind became too "hardcore" where you nee
 36. Fixed a bug that would not check if the user has enough XP to level up
 37. Fixed a bug that would level up both account and semester if one of them leveled up
 38. Fixed a bug that would not save the new date when the user claimed the daily reward
+39. Fixed a bug that would not trigger the daily login if the user had no timer data
 
 GBF Timers is now available for public use and the source code is now open source.
 
