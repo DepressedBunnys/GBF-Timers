@@ -106,6 +106,8 @@ This change was needed since the level grind became too "hardcore" where you nee
 37. Fixed a bug that would level up both account and semester if one of them leveled up
 38. Fixed a bug that would not save the new date when the user claimed the daily reward
 39. Fixed a bug that would not trigger the daily login if the user had no timer data
+40. Fixed a bug that would not increase the user's account level but would stack the XP
+41. Fixed a bug that would not send the end message
 
 GBF Timers is now available for public use and the source code is now open source.
 
