@@ -196,7 +196,9 @@ module.exports = (client) => {
       const timerStarted = new MessageEmbed()
         .setTitle(`${emojis.VERIFY} Success`)
         .setColor(colours.DEFAULT)
-        .setDescription(`Timer started, best of luck.`);
+        .setDescription(
+          `Timer started ${interaction.user.username}, best of luck.`
+        );
 
       // Adding the start time to the DB
 
@@ -399,7 +401,7 @@ module.exports = (client) => {
       const hasRankedUpAccount = checkRankAccount(
         timerData.accountLevel,
         timerData.accountXP,
-        timerData.seasonXP + rewardedXP
+        timerData.accountXP + rewardedXP
       );
 
       const leveledUpMessage = new MessageEmbed()
@@ -435,9 +437,7 @@ module.exports = (client) => {
           hasRankedUpMessage +
           `• New Season Level: \`${
             timerData.seasonLevel + 1
-          }\`\n• Season XP: \`${
-            hasRankedUpSeason[2]
-          }\`\n• XP required to reach level ${
+          }\`\n• Season XP: \`${hasRankedUpSeason[2].toLocaleString()}\`\n• XP required to reach level ${
             timerData.seasonLevel + 2
           }: \`${xpRequired(
             timerData.seasonLevel + 2
@@ -473,15 +473,13 @@ module.exports = (client) => {
         accountProgressBar = `${emojis.leftFull}${emojis.middleFull}${emojis.rightFull}`;
       else if (percentageAccountComplete < 25)
         accountProgressBar = `${emojis.leftEmpty}${emojis.middleEmpty}${emojis.rightEmpty}`;
-
+      console.log(hasRankedUpAccount);
       if (hasRankedUpAccount[0] === true) {
         hasRankedUpMessage =
           hasRankedUpMessage +
           `• New Account Level: \`${
             timerData.accountLevel + 1
-          }\`\n• Account XP: \`${
-            hasRankedUpAccount[2]
-          }\`\n• XP required to reach level ${
+          }\`\n• Account XP: \`${hasRankedUpAccount[2].toLocaleString()}\`\n• XP required to reach level ${
             timerData.accountLevel + 2
           }: \`${xpRequiredAccount(
             timerData.accountLevel + 2
@@ -556,7 +554,9 @@ module.exports = (client) => {
         .setTitle(`${emojis.VERIFY} New Longest Session`)
         .setColor(colours.DEFAULT)
         .setDescription(
-          `Today's session was the longest session recorded in ${
+          ` ${
+            interaction.user.username
+          }\n\nToday's session was the longest session recorded in ${
             timerData.seasonName ? timerData.seasonName : "this semester"
           }\n\nDuration: ${msToTime(timeElapsed * 1000)}\nTime difference: ${
             longestDiff < 0
@@ -577,7 +577,7 @@ module.exports = (client) => {
           }`
         )
         .setColor(colours.DEFAULT)
-        .setDescription(`${embedDescription}`)
+        .setDescription(`${interaction.user.username}\n\n${embedDescription}`)
         .setFooter({
           text: `Good Job`
         });
@@ -674,7 +674,9 @@ module.exports = (client) => {
       const timerAlreadyPaused = new MessageEmbed()
         .setTitle(`${emojis.ERROR} You can't do that`)
         .setColor(colours.ERRORRED)
-        .setDescription(`The timer is already paused.`);
+        .setDescription(
+          ` ${interaction.user.username} the timer is already paused.`
+        );
 
       if (timerData.breakTimerStart) {
         await originalMessage.edit({
@@ -699,7 +701,7 @@ module.exports = (client) => {
         .setTitle(`${emojis.VERIFY} Success`)
         .setColor(colours.DEFAULT)
         .setDescription(
-          `The timer has been paused, time elapsed from now till un-pause time won't be counted.\nTo un-pause use the buttons on the [original message](https://discord.com/channels/${interaction.guild.id}/${interaction.channel.id}/${timerData.messageID} "Easter egg number 2!")`
+          `${interaction.user.username}\n\nThe timer has been paused, time elapsed from now till un-pause time won't be counted.\nTo un-pause use the buttons on the [original message](https://discord.com/channels/${interaction.guild.id}/${interaction.channel.id}/${timerData.messageID} "Easter egg number 2!")`
         );
 
       await originalMessage.edit({
@@ -803,7 +805,9 @@ module.exports = (client) => {
         .setTitle(`${emojis.VERIFY} Success`)
         .setColor(colours.DEFAULT)
         .setDescription(
-          `Session timer has been un-paused\n\n• Break Time: ${msToTime(
+          `${
+            interaction.user.username
+          }\n\nSession timer has been un-paused\n\n• Break Time: ${msToTime(
             timeElapsed * 1000
           )} [${timeElapsed.toLocaleString()} Seconds]\n• This is break number ${
             timerData.sessionBreaks
