@@ -13,14 +13,6 @@ const TimerSchema = new Schema(
       type: Number,
       default: 0
     },
-    accountXP: {
-      type: Number,
-      default: 0
-    },
-    accountLevel: {
-      type: Number,
-      default: 1
-    },
     startTime: {
       type: Array,
       default: []
