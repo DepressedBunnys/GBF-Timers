@@ -1,15 +1,14 @@
 const SlashCommand = require("../../utils/slashCommands");
 
 const {
-  MessageEmbed,
-  MessageActionRow,
-  MessageButton,
-  Constants
+  EmbedBuilder,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle
 } = require("discord.js");
 
-const title = require("../../gbfembedmessages.json");
-const colours = require("../../GBFColor.json");
-const emojis = require("../../GBFEmojis.json");
+const colours = require("../../GBF/GBFColor.json");
+const emojis = require("../../GBF/GBFEmojis.json");
 
 const timerSchema = require("../../schemas/User Schemas/Timer Schema");
 
@@ -17,20 +16,15 @@ const {
   msToTime,
   chunkAverage,
   twentyFourToTwelve
-} = require("../../utils/engine");
+} = require("../../utils/Engine");
 
 const {
   xpRequired,
   xpRequiredAccount,
-  hoursRequired,
-  loginReward,
-  checkRank,
-  checkRankAccount
+  hoursRequired
 } = require("../../utils/TimerLogic");
 
 const fetch = require("node-fetch");
-
-const next24Hours = Math.round((Date.now() + 24 * 60 * 60 * 1000) / 1000);
 
 module.exports = class BasicTimerUI extends SlashCommand {
   constructor(client) {
@@ -39,7 +33,7 @@ module.exports = class BasicTimerUI extends SlashCommand {
       description: "Track your daily activites using GBF timers",
       category: "Timer",
       userPermission: [],
-      botPermission: [""],
+      botPermission: [],
       cooldown: 0,
       development: false,
       subcommands: {
@@ -64,7 +58,7 @@ module.exports = class BasicTimerUI extends SlashCommand {
               userID: interaction.user.id
             });
 
-            const noAccount = new MessageEmbed()
+            const noAccount = new EmbedBuilder()
               .setTitle(`${emojis.ERROR} You can't do that`)
               .setColor(colours.ERRORRED)
               .setDescription(
@@ -151,6 +145,7 @@ module.exports = class BasicTimerUI extends SlashCommand {
             // This quadrant uses an external function that can be found in GBF's engine
 
             const weeklyAverages = chunkAverage(timerData.sessionLengths, 7);
+            const attendedWeeks = chunkAverage(timerData.sessionLengths, 5);
 
             // It is very likely that there isn't enough data to be able to provide a week's average, so we need to check for that
 
@@ -179,7 +174,9 @@ module.exports = class BasicTimerUI extends SlashCommand {
                 ] / 3600
               ).toFixed(2)} Hours]\n• Number of weeks: ${
                 weeklyAverages.length
-              }`;
+              }\n• Number of 5 day weeks: ${
+                attendedWeeks.length
+              } (Based off global average school days)`;
             }
 
             // Getting the average start time (Old code)
@@ -332,7 +329,7 @@ module.exports = class BasicTimerUI extends SlashCommand {
               (hoursNeededAccount * 60).toFixed(2)
             ).toLocaleString()} Minutes]`;
 
-            const displayMessageEmbed = new MessageEmbed()
+            const displayEmbed = new EmbedBuilder()
               .setTitle(
                 `${randomTitleText} | ${
                   timerData.seasonName
@@ -347,7 +344,7 @@ module.exports = class BasicTimerUI extends SlashCommand {
               });
 
             return interaction.reply({
-              embeds: [displayMessageEmbed]
+              embeds: [displayEmbed]
             });
           }
         },
@@ -357,7 +354,7 @@ module.exports = class BasicTimerUI extends SlashCommand {
             {
               name: "topic",
               description: "The subject/topic of the session",
-              type: Constants.ApplicationCommandOptionTypes.STRING,
+              type: 3,
               minLength: 2,
               required: true
             }
@@ -367,7 +364,7 @@ module.exports = class BasicTimerUI extends SlashCommand {
               userID: interaction.user.id
             });
 
-            const noAccount = new MessageEmbed()
+            const noAccount = new EmbedBuilder()
               .setTitle(`⚠️ You cannot do that ⚠️`)
               .setColor(colours.ERRORRED)
               .setDescription(
@@ -468,7 +465,7 @@ module.exports = class BasicTimerUI extends SlashCommand {
               randomAdvice = `Advice could not be loaded.`;
             }
 
-            const mainEmbed = new MessageEmbed()
+            const mainEmbed = new EmbedBuilder()
               .setTitle(`${randomTitleText} | ${sessionTopic}`)
               .setColor(colours.DEFAULT)
               .setDescription(`${messageDescription}`)
@@ -478,22 +475,22 @@ module.exports = class BasicTimerUI extends SlashCommand {
 
             // Creating the buttons that the user will use to start / stop / pause
 
-            const mainButtonsRow = new MessageActionRow().addComponents([
-              new MessageButton()
+            const mainButtonsRow = new ActionRowBuilder().addComponents([
+              new ButtonBuilder()
                 .setCustomId("startTimer")
                 .setEmoji("🕜")
                 .setLabel("Start Timer")
-                .setStyle("SECONDARY"),
-              new MessageButton()
+                .setStyle(ButtonStyle.Secondary),
+              new ButtonBuilder()
                 .setCustomId("pauseTimer")
                 .setEmoji("⏰")
                 .setLabel("Pause Timer")
-                .setStyle("SECONDARY"),
-              new MessageButton()
+                .setStyle(ButtonStyle.Secondary),
+              new ButtonBuilder()
                 .setCustomId("stopTimer")
                 .setEmoji("🕛")
                 .setLabel("Stop Timer")
-                .setStyle("SECONDARY")
+                .setStyle(ButtonStyle.Secondary)
             ]);
 
             const initiateMessage = await interaction.reply({
@@ -515,7 +512,7 @@ module.exports = class BasicTimerUI extends SlashCommand {
               name: "semester-name",
               description:
                 "The semester's name [CANNOT BE CHANGED], this will be used until you reset",
-              type: Constants.ApplicationCommandOptionTypes.STRING,
+              type: 3,
               minLength: 6,
               maxLength: 20,
               required: true
@@ -526,7 +523,7 @@ module.exports = class BasicTimerUI extends SlashCommand {
               userID: interaction.user.id
             });
 
-            const existingAccount = new MessageEmbed()
+            const existingAccount = new EmbedBuilder()
               .setTitle(`${emojis.ERROR} You can't do that`)
               .setColor(colours.ERRORRED)
               .setDescription(
@@ -543,7 +540,7 @@ module.exports = class BasicTimerUI extends SlashCommand {
 
             const seasonName = interaction.options.getString("semester-name");
 
-            const newSemesterSeason = new MessageEmbed()
+            const newSemesterSeason = new EmbedBuilder()
               .setTitle(`${emojis.VERIFY} Registered`)
               .setColor(colours.DEFAULT)
               .setDescription(
@@ -552,7 +549,7 @@ module.exports = class BasicTimerUI extends SlashCommand {
                 )}:F>\n\nSuccessfully registered ${seasonName} as a new semester, best of luck.\n\nYou can reset using </timer reset:1068210539689414777>\nThis will delete all of the previously saved data ⚠️`
               );
 
-            const helpEmbed = new MessageEmbed()
+            const helpEmbed = new EmbedBuilder()
               .setTitle(`${emojis.LOGOTRANS} GBF Timers`)
               .setColor(colours.DEFAULT)
               .setDescription(`1. Start by registering, this can be done for **free** using  </timer registry:1068210539689414777>
@@ -619,7 +616,7 @@ module.exports = class BasicTimerUI extends SlashCommand {
 
             // Checking if the user does not have an account
 
-            const noAccount = new MessageEmbed()
+            const noAccount = new EmbedBuilder()
               .setTitle(`⚠️ You cannot do that ⚠️`)
               .setColor(colours.ERRORRED)
               .setDescription(
@@ -636,35 +633,35 @@ module.exports = class BasicTimerUI extends SlashCommand {
 
             // Creating confirm or deny buttons
 
-            const confirmationButtons = new MessageActionRow().addComponents([
-              new MessageButton()
+            const confirmationButtons = new ActionRowBuilder().addComponents([
+              new ButtonBuilder()
                 .setCustomId("confirmTimerDelete")
-                .setStyle("DANGER")
+                .setStyle(ButtonStyle.Danger)
                 .setLabel("Delete My Data"),
-              new MessageButton()
+              new ButtonBuilder()
                 .setCustomId("denyTimerDelete")
-                .setStyle("SUCCESS")
+                .setStyle(ButtonStyle.Success)
                 .setLabel("Don't Delete My Data")
             ]);
 
             // Creating the same buttons as above but disabled
 
-            const confirmationButtonsD = new MessageActionRow().addComponents([
-              new MessageButton()
+            const confirmationButtonsD = new ActionRowBuilder().addComponents([
+              new ButtonBuilder()
                 .setCustomId("confirmTimerDeleteD")
                 .setDisabled(true)
-                .setStyle("DANGER")
+                .setStyle(ButtonStyle.Danger)
                 .setLabel("Delete My Data"),
-              new MessageButton()
+              new ButtonBuilder()
                 .setCustomId("denyTimerDeleteD")
                 .setDisabled(true)
-                .setStyle("SUCCESS")
+                .setStyle(ButtonStyle.Success)
                 .setLabel("Don't Delete My Data")
             ]);
 
             // Creating an embed to display to the user
 
-            const warningMessage = new MessageEmbed()
+            const warningMessage = new EmbedBuilder()
               .setTitle(`⚠️ Confirmation required`)
               .setColor(colours.DEFAULT)
               .setDescription(
@@ -693,7 +690,7 @@ module.exports = class BasicTimerUI extends SlashCommand {
             collector.on("collect", async (i) => {
               // Returning if the user decided to abort the process
               if (i.customId === "denyTimerDelete") {
-                const processAborted = new MessageEmbed()
+                const processAborted = new EmbedBuilder()
                   .setTitle(`${emojis.VERIFY} Success`)
                   .setColor(colours.DEFAULT)
                   .setDescription(
@@ -711,7 +708,7 @@ module.exports = class BasicTimerUI extends SlashCommand {
               } else if (i.customId === "confirmTimerDelete") {
                 // Telling the user the data is being deleted
 
-                const processBegin = new MessageEmbed()
+                const processBegin = new EmbedBuilder()
                   .setTitle(`${emojis.VERIFY} Success`)
                   .setColor(colours.DEFAULT)
                   .setDescription(
@@ -730,7 +727,7 @@ module.exports = class BasicTimerUI extends SlashCommand {
                   timerData.seasonLevel
                 }\n• Semester XP: ${timerData.seasonXP}`;
 
-                const semesterStats = new MessageEmbed()
+                const semesterStats = new EmbedBuilder()
                   .setTitle(`${timerData.seasonName} Recap`)
                   .setColor(colours.DEFAULT)
                   .setDescription(`${semesterRecap}`)
@@ -795,7 +792,7 @@ module.exports = class BasicTimerUI extends SlashCommand {
               userID: interaction.user.id
             });
 
-            const noAccount = new MessageEmbed()
+            const noAccount = new EmbedBuilder()
               .setTitle(`⚠️ You cannot do that ⚠️`)
               .setColor(colours.ERRORRED)
               .setDescription(
@@ -810,7 +807,7 @@ module.exports = class BasicTimerUI extends SlashCommand {
 
             // Checking if there's an active session
 
-            const noActiveSession = new MessageEmbed()
+            const noActiveSession = new EmbedBuilder()
               .setTitle(`${emojis.ERROR} You can't do that`)
               .setColor(colours.ERRORRED)
               .setDescription(`There are no active sessions.`);
@@ -841,7 +838,7 @@ module.exports = class BasicTimerUI extends SlashCommand {
                 3
               ) - breakTime;
 
-            const sessionStats = new MessageEmbed()
+            const sessionStats = new EmbedBuilder()
               .setTitle(
                 `Session Stats | ${
                   timerData.sessionTopic ? timerData.sessionTopic : ""
@@ -866,7 +863,7 @@ module.exports = class BasicTimerUI extends SlashCommand {
         help: {
           description: "Find out how to use GBF Timers",
           execute: async ({ client, interaction }) => {
-            const helpEmbed = new MessageEmbed()
+            const helpEmbed = new EmbedBuilder()
               .setTitle(`${emojis.LOGOTRANS} GBF Timers`)
               .setColor(colours.DEFAULT)
               .setDescription(`1. Start by registering, this can be done for **free** using  </timer registry:1068210539689414777>
@@ -881,12 +878,12 @@ module.exports = class BasicTimerUI extends SlashCommand {
             });
           }
         },
-        topic_update: {
+        topic: {
           args: [
             {
               name: "topic",
               description: "The subject/topic of the session",
-              type: Constants.ApplicationCommandOptionTypes.STRING,
+              type: 3,
               minLength: 2,
               required: true
             }
@@ -897,7 +894,7 @@ module.exports = class BasicTimerUI extends SlashCommand {
               userID: interaction.user.id
             });
 
-            const noAccount = new MessageEmbed()
+            const noAccount = new EmbedBuilder()
               .setTitle(`⚠️ You cannot do that ⚠️`)
               .setColor(colours.ERRORRED)
               .setDescription(
@@ -912,7 +909,7 @@ module.exports = class BasicTimerUI extends SlashCommand {
 
             // Checking if there's an active session
 
-            const noActiveSession = new MessageEmbed()
+            const noActiveSession = new EmbedBuilder()
               .setTitle(`${emojis.ERROR} You can't do that`)
               .setColor(colours.ERRORRED)
               .setDescription(`There are no active sessions.`);
@@ -927,7 +924,7 @@ module.exports = class BasicTimerUI extends SlashCommand {
               sessionTopic: interaction.options.getString("topic")
             });
 
-            const topicUpdated = new MessageEmbed()
+            const topicUpdated = new EmbedBuilder()
               .setTitle(`${emojis.VERIFY} Success`)
               .setColor(colours.DEFAULT)
               .setDescription(
