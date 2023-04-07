@@ -1,31 +1,30 @@
 const {
-  MessageEmbed,
-  MessageActionRow,
-  MessageButton,
-  Message
+  EmbedBuilder,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  Events
 } = require("discord.js");
 
-const title = require("../gbfembedmessages.json");
-const colours = require("../GBFColor.json");
-const emojis = require("../GBFEmojis.json");
+const colours = require("../../GBF/GBFColor.json");
+const emojis = require("../../GBF/GBFEmojis.json");
 
-const timerSchema = require("../schemas/User Schemas/Timer Schema");
+const timerSchema = require("../../schemas/User Schemas/Timer Schema");
+const bankSchema = require("../../schemas/User Schemas/User Profile Schema");
 
-const { msToTime } = require("../utils/engine");
+const { msToTime } = require("../../utils/Engine");
 
 const {
   xpRequired,
   xpRequiredAccount,
-  hoursRequired,
-  loginReward,
   checkUser,
   calculateXP,
   checkRank,
   checkRankAccount
-} = require("../utils/TimerLogic");
+} = require("../../utils/TimerLogic");
 
 module.exports = (client) => {
-  client.on("interactionCreate", async (interaction) => {
+  client.on(Events.InteractionCreate, async (interaction) => {
     // Checking if the interaction type is a button
 
     if (!interaction.isButton()) return;
@@ -43,25 +42,43 @@ module.exports = (client) => {
     // Getting the user's data
 
     /**
-     @messageID [message ID]
-     @userID [interaction user ID]
-     @initationTime [Date]
-     @sessionLengths [Array]
-     */
+       @messageID [message ID]
+       @userID [interaction user ID]
+       @initationTime [Date]
+       @sessionLengths [Array]
+       */
 
     const timerData =
       (await timerSchema.findOne({
         userID: interaction.user.id
       })) || undefined;
 
+    const userData =
+      (await bankSchema.findOne({
+        userID: interaction.user.id
+      })) || undefined;
+
     // If the user's data does not exist we return EMBED
 
-    const noAccount = new MessageEmbed()
+    const noAccount = new EmbedBuilder()
       .setTitle(`${emojis.ERROR} 404 Not Found`)
       .setColor(colours.ERRORRED)
       .setDescription(
         `I couldn't find any data matching your user ID.\n\nCreate a new semester account using </timer registry:1068210539689414777>.`
       );
+
+    if (!userData) {
+      const newUserProfile = new bankSchema({
+        userID: interaction.user.id
+      });
+
+      await newUserProfile.save();
+
+      return interaction.reply({
+        embeds: [noAccount],
+        ephemeral: true
+      });
+    }
 
     if (!timerData)
       return interaction.reply({
@@ -71,7 +88,7 @@ module.exports = (client) => {
 
     // Checking if the user initiated using message IDs EMBED
 
-    const noMessageData = new MessageEmbed()
+    const noMessageData = new EmbedBuilder()
       .setTitle(`${emojis.ERROR} 403 Forbidden`)
       .setColor(colours.ERRORRED)
       .setDescription(
@@ -90,7 +107,7 @@ module.exports = (client) => {
 
     // If the original message does not exist EMBED
 
-    const noMessage = new MessageEmbed()
+    const noMessage = new EmbedBuilder()
       .setTitle(`${emojis.ERROR} 404-1 Not Found`)
       .setColor(colours.ERRORRED)
       .setDescription(
@@ -99,7 +116,7 @@ module.exports = (client) => {
 
     // Checking if the user who used the button is the same user who used the command
 
-    const invalidPermissions = new MessageEmbed()
+    const invalidPermissions = new EmbedBuilder()
       .setTitle(`${emojis.ERROR} 403-1 Forbidden`)
       .setColor(colours.ERRORRED)
       .setDescription(
@@ -150,28 +167,28 @@ module.exports = (client) => {
        * @DS : [Disabled Start]
        */
 
-      const mainButtonsRowDS = new MessageActionRow().addComponents([
-        new MessageButton()
+      const mainButtonsRowDS = new ActionRowBuilder().addComponents([
+        new ButtonBuilder()
           .setCustomId("startTimer")
           .setDisabled(true)
           .setEmoji("🕜")
           .setLabel("Start Timer")
-          .setStyle("SECONDARY"),
-        new MessageButton()
+          .setStyle(2),
+        new ButtonBuilder()
           .setCustomId("pauseTimer")
           .setEmoji("⏰")
           .setLabel("Pause Timer")
-          .setStyle("SECONDARY"),
-        new MessageButton()
+          .setStyle(2),
+        new ButtonBuilder()
           .setCustomId("stopTimer")
           .setEmoji("🕛")
           .setLabel("Stop Timer")
-          .setStyle("SECONDARY")
+          .setStyle(2)
       ]);
 
       // Checking if the timer was already on
 
-      const timerAlreadyOn = new MessageEmbed()
+      const timerAlreadyOn = new EmbedBuilder()
         .setTitle(`${emojis.ERROR} Error Starting Session`)
         .setColor(colours.ERRORRED)
         .setDescription(`The timer is already on.`);
@@ -193,7 +210,7 @@ module.exports = (client) => {
 
       // Starting the timer
 
-      const timerStarted = new MessageEmbed()
+      const timerStarted = new EmbedBuilder()
         .setTitle(`${emojis.VERIFY} Success`)
         .setColor(colours.DEFAULT)
         .setDescription(
@@ -270,30 +287,30 @@ module.exports = (client) => {
        * @DA : [Disabled All]
        */
 
-      const mainButtonsRowDA = new MessageActionRow().addComponents([
-        new MessageButton()
+      const mainButtonsRowDA = new ActionRowBuilder().addComponents([
+        new ButtonBuilder()
           .setCustomId("startTimer")
           .setDisabled(true)
           .setEmoji("🕜")
           .setLabel("Start Timer")
-          .setStyle("SECONDARY"),
-        new MessageButton()
+          .setStyle(2),
+        new ButtonBuilder()
           .setCustomId("pauseTimer")
           .setDisabled(true)
           .setEmoji("⏰")
           .setLabel("Pause Timer")
-          .setStyle("SECONDARY"),
-        new MessageButton()
+          .setStyle(2),
+        new ButtonBuilder()
           .setCustomId("stopTimer")
           .setDisabled(true)
           .setEmoji("🕛")
           .setLabel("Stop Timer")
-          .setStyle("SECONDARY")
+          .setStyle(2)
       ]);
 
       // Checking if the timer is already off
 
-      const timerAlreadyOff = new MessageEmbed()
+      const timerAlreadyOff = new EmbedBuilder()
         .setTitle(`${emojis.ERROR} Error Stopping Session`)
         .setColor(colours.ERRORRED)
         .setDescription(`Specified session has already ended.`)
@@ -404,7 +421,7 @@ module.exports = (client) => {
         timerData.accountXP + rewardedXP
       );
 
-      const leveledUpMessage = new MessageEmbed()
+      const leveledUpMessage = new EmbedBuilder()
         .setTitle(`${rankUpEmoji} Ranked Up`)
         .setColor(colours.DEFAULT);
 
@@ -550,7 +567,7 @@ module.exports = (client) => {
       await timerData.sessionLengths.push(Number(timeElapsed.toFixed(2)));
       await timerData.save();
 
-      const longestSession = new MessageEmbed()
+      const longestSession = new EmbedBuilder()
         .setTitle(`${emojis.VERIFY} New Longest Session`)
         .setColor(colours.DEFAULT)
         .setDescription(
@@ -570,7 +587,7 @@ module.exports = (client) => {
           embeds: [longestSession]
         });
 
-      const sessionStats = new MessageEmbed()
+      const sessionStats = new EmbedBuilder()
         .setTitle(
           `${emojis.VERIFY} Session Ended | ${
             timerData.sessionTopic ? timerData.sessionTopic : ""
@@ -649,29 +666,29 @@ module.exports = (client) => {
        * @UP - Unpause Button
        */
 
-      const mainButtonsRowUP = new MessageActionRow().addComponents([
-        new MessageButton()
+      const mainButtonsRowUP = new ActionRowBuilder().addComponents([
+        new ButtonBuilder()
           .setCustomId("startTimer")
           .setDisabled(true)
           .setEmoji("🕜")
           .setLabel("Start Timer")
-          .setStyle("SECONDARY"),
-        new MessageButton()
+          .setStyle(2),
+        new ButtonBuilder()
           .setCustomId("unpauseTimer")
           .setEmoji("⏰")
           .setLabel("Un-pause Timer")
-          .setStyle("SECONDARY"),
-        new MessageButton()
+          .setStyle(2),
+        new ButtonBuilder()
           .setCustomId("stopTimer")
           .setDisabled(true)
           .setEmoji("🕛")
           .setLabel("Stop Timer")
-          .setStyle("SECONDARY")
+          .setStyle(2)
       ]);
 
       // Checking if the timer is already paused
 
-      const timerAlreadyPaused = new MessageEmbed()
+      const timerAlreadyPaused = new EmbedBuilder()
         .setTitle(`${emojis.ERROR} You can't do that`)
         .setColor(colours.ERRORRED)
         .setDescription(
@@ -697,7 +714,7 @@ module.exports = (client) => {
         totalBreaks: timerData.totalBreaks + 1
       });
 
-      const timerPaused = new MessageEmbed()
+      const timerPaused = new EmbedBuilder()
         .setTitle(`${emojis.VERIFY} Success`)
         .setColor(colours.DEFAULT)
         .setDescription(
@@ -751,28 +768,28 @@ module.exports = (client) => {
 
       // Checking if the timer is paused
 
-      const timerNotPaused = new MessageEmbed()
+      const timerNotPaused = new EmbedBuilder()
         .setTitle(`${emojis.ERROR} You can't do that`)
         .setColor(colours.ERRORRED)
         .setDescription(`The timer is not paused.`);
 
-      const mainButtonsRowDS = new MessageActionRow().addComponents([
-        new MessageButton()
+      const mainButtonsRowDS = new ActionRowBuilder().addComponents([
+        new ButtonBuilder()
           .setCustomId("startTimer")
           .setDisabled(true)
           .setEmoji("🕜")
           .setLabel("Start Timer")
-          .setStyle("SECONDARY"),
-        new MessageButton()
+          .setStyle(ButtonStyle.Secondary),
+        new ButtonBuilder()
           .setCustomId("pauseTimer")
           .setEmoji("⏰")
           .setLabel("Pause Timer")
-          .setStyle("SECONDARY"),
-        new MessageButton()
+          .setStyle(ButtonStyle.Secondary),
+        new ButtonBuilder()
           .setCustomId("stopTimer")
           .setEmoji("🕛")
           .setLabel("Stop Timer")
-          .setStyle("SECONDARY")
+          .setStyle(ButtonStyle.Secondary)
       ]);
 
       if (!timerData.breakTimerStart) {
@@ -801,7 +818,7 @@ module.exports = (client) => {
         breakTimerStart: null
       });
 
-      const timerUnpaused = new MessageEmbed()
+      const timerUnpaused = new EmbedBuilder()
         .setTitle(`${emojis.VERIFY} Success`)
         .setColor(colours.DEFAULT)
         .setDescription(
