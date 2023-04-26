@@ -1,6 +1,28 @@
-const { Schema, model } = require("mongoose");
+import { Schema, model, Document } from "mongoose";
 
-const TimerSchema = new Schema(
+interface ITimerData extends Document {
+  userID: string;
+  messageID: string;
+  seasonName: string;
+  seasonLevel: number;
+  seasonXP: number;
+  startTime: number[];
+  initiationTime: Date | null;
+  sessionTopic: string;
+  numberOfStarts: number;
+  timeSpent: number;
+  longestSessionTime: number;
+  sessionLengths: number[];
+  lastSessionTime: number | null;
+  lastSessionDate: Date | null;
+  breakTime: number;
+  totalBreaks: number;
+  sessionBreaks: number;
+  sessionBreakTime: number;
+  breakTimerStart: Date | null;
+}
+
+const TimerSchema = new Schema<ITimerData>(
   {
     userID: String,
     messageID: String,
@@ -14,10 +36,10 @@ const TimerSchema = new Schema(
       default: 0
     },
     startTime: {
-      type: Array,
+      type: [Number],
       default: []
     },
-    intiationTime: {
+    initiationTime: {
       type: Date,
       default: null
     },
@@ -35,7 +57,7 @@ const TimerSchema = new Schema(
       default: 0
     },
     sessionLengths: {
-      type: Array,
+      type: [Number],
       default: []
     },
     lastSessionTime: Number,
@@ -63,4 +85,4 @@ const TimerSchema = new Schema(
   }
 );
 
-module.exports = model("Timer data", TimerSchema);
+export default model<ITimerData>("Timer data", TimerSchema);
