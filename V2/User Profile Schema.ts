@@ -1,6 +1,21 @@
-const { Schema, model } = require("mongoose");
+import { Schema, model, Document } from "mongoose";
 
-const UserProfileSchema = new Schema(
+interface IUserProfileData extends Document {
+  userID: string;
+  privateProfile: boolean;
+  cash: number;
+  bank: number;
+  dunkelCoins: number;
+  totalEarned: number;
+  RP: number;
+  Rank: number;
+  badges: string[];
+  dailyCooldown: Date | null;
+  dailyStreak: number;
+  extraTimerXP: number | null;
+}
+
+const UserProfileSchema = new Schema<IUserProfileData>(
   {
     userID: String,
     privateProfile: {
@@ -32,12 +47,10 @@ const UserProfileSchema = new Schema(
       default: 1
     },
     badges: {
-      type: Array,
+      type: [String],
       default: []
     },
     dailyCooldown: Date,
-    //type: Date,
-    //default: new Date(Date.now() - 86400000)
     dailyStreak: Number,
     extraTimerXP: Number
   },
@@ -46,4 +59,4 @@ const UserProfileSchema = new Schema(
   }
 );
 
-module.exports = model("User Profile Data", UserProfileSchema);
+export default model<IUserProfileData>("User Profile Data", UserProfileSchema);
