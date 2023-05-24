@@ -1,53 +1,42 @@
-const SlashCommand = require("../../utils/slashCommands");
+const SlashCommand = require("../../utils/slashCommands").default;
 
-const {
-  MessageEmbed,
-  MessageActionRow,
-  MessageButton,
-  Constants
-} = require("discord.js");
+import {
+  EmbedBuilder,
+  Client,
+  ColorResolvable,
+  CommandInteraction
+} from "discord.js";
 
-const title = require("../../gbfembedmessages.json");
-const colours = require("../../GBFColor.json");
-const emojis = require("../../GBFEmojis.json");
+import colors from "../../GBF/GBFColor.json";
+import emojis from "../../GBF/GBFEmojis.json";
 
-const userSchema = require("../../schemas/User Schemas/User Profile Schema");
-const timerSchema = require("../../schemas/User Schemas/Timer Schema");
+import userSchema from "../../schemas/User Schemas/User Profile Schema";
+import timerSchema from "../../schemas/User Schemas/Timer Schema";
 
-const {
-  msToTime,
-  chunkAverage,
-  twentyFourToTwelve
-} = require("../../utils/engine");
-
-const {
-  xpRequired,
-  xpRequiredAccount,
-  hoursRequired,
+import {
   loginReward,
   checkRank,
   checkRankAccount
-} = require("../../utils/TimerLogic");
-
-const fetch = require("node-fetch");
+} from "../../utils/TimerLogic";
 
 const next24Hours = Math.round((Date.now() + 24 * 60 * 60 * 1000) / 1000);
 
-module.exports = class DailyClaim extends SlashCommand {
-  constructor(client) {
+interface ExecuteFunction {
+  client: Client;
+  interaction: CommandInteraction;
+}
+
+export default class DailyClaim extends SlashCommand {
+  constructor(client: Client) {
     super(client, {
       name: "daily",
       category: "Economy",
       description: "Login in daily to get cool free prizes",
-      devOnly: true,
-      userPermission: [],
-      botPermission: [],
-      cooldown: 0,
       development: true
     });
   }
 
-  async execute({ client, interaction }) {
+  async execute({ client, interaction }: ExecuteFunction) {
     const userData = await userSchema.findOne({
       userID: interaction.user.id
     });
@@ -56,10 +45,12 @@ module.exports = class DailyClaim extends SlashCommand {
       userID: interaction.user.id
     });
 
+    const userHasAccount: boolean = userData && timerData ? true : false;
+
     if (!userData) {
-      const newAccount = new MessageEmbed()
+      const newAccount = new EmbedBuilder()
         .setTitle(`Daily Collected ${emojis.MaxRank}`)
-        .setColor(colours.DEFAULT)
+        .setColor(colors.DEFAULT as ColorResolvable)
         .setDescription(
           `Hey!\nThanks for logging in GBF today, as a thank you, you'll receive a reward based on the day of the week and your daily streak!\n\nI've given you an extra reward as a welcome gift 😉\n\n• 250 DunkelCoins ${emojis.dunkelCoin}\n• 5,000 Timer XP`
         )
@@ -74,10 +65,13 @@ module.exports = class DailyClaim extends SlashCommand {
         dunkelCoins: 750
       });
 
-      if (timerData) {
+      if (userHasAccount) {
         await timerData.updateOne({
-          seasonXP: timerData.seasonXP + 5000,
-          accountXP: timerData.accountXP + 5000
+          seasonXP: timerData.seasonXP + 5000
+        });
+
+        await userData.updateOne({
+          RP: userData.RP + 5000
         });
 
         const rankUpSeason = checkRank(
@@ -87,18 +81,16 @@ module.exports = class DailyClaim extends SlashCommand {
         );
 
         const rankUpAccount = checkRankAccount(
-          timerData.accountLevel,
-          timerData.accountXP,
-          timerData.accountXP + 5000
+          userData.Rank,
+          userData.RP,
+          userData.RP + 5000
         );
-
-        console.log(rankUpAccount);
 
         if (rankUpSeason[0]) {
           await client.emit(
             "playerLevelUp",
             interaction,
-            timerData,
+            interaction.user,
             "seasonLevel",
             rankUpSeason[1],
             rankUpSeason[2]
@@ -109,7 +101,7 @@ module.exports = class DailyClaim extends SlashCommand {
           await client.emit(
             "playerLevelUp",
             interaction,
-            timerData,
+            interaction.user,
             "accountLevel",
             rankUpAccount[1],
             rankUpAccount[2]
@@ -128,11 +120,11 @@ module.exports = class DailyClaim extends SlashCommand {
       });
     }
 
-    const currentStreak = userData.dailyStreak + 1;
+    const currentStreak: number = userData.dailyStreak + 1;
 
-    const lostStreak = new MessageEmbed()
+    const lostStreak = new EmbedBuilder()
       .setTitle(`Daily Collected 💰`)
-      .setColor(colours.DEFAULT)
+      .setColor(colors.DEFAULT as ColorResolvable)
       .setDescription(
         `Collected your daily login reward [Day: ${
           loginReward()[0]
@@ -147,16 +139,19 @@ module.exports = class DailyClaim extends SlashCommand {
         iconURL: interaction.user.displayAvatarURL()
       });
 
-    if (Date.parse(userData.dailyCooldown) + 172800000 < Date.now()) {
+    if (userData.dailyCooldown.getTime() + 172800000 < Date.now()) {
       await userData.updateOne({
         dailyStreak: 1,
         dailyCooldown: new Date(Date.now())
       });
 
-      if (timerData) {
+      if (userHasAccount) {
         await timerData.updateOne({
-          seasonXP: timerData.seasonXP + Number(loginReward()[1]),
-          accountXP: timerData.accountXP + Number(loginReward()[1])
+          seasonXP: timerData.seasonXP + Number(loginReward()[1])
+        });
+
+        await userData.updateOne({
+          RP: userData.RP + Number(loginReward()[1])
         });
 
         const rankUpSeason = checkRank(
@@ -166,16 +161,16 @@ module.exports = class DailyClaim extends SlashCommand {
         );
 
         const rankUpAccount = checkRankAccount(
-          timerData.accountLevel,
-          timerData.accountXP,
-          timerData.accountXP + Number(loginReward()[1])
+          userData.Rank,
+          userData.RP,
+          userData.RP + Number(loginReward()[1])
         );
 
         if (rankUpSeason[0]) {
           await client.emit(
             "playerLevelUp",
             interaction,
-            timerData,
+            interaction.user,
             "seasonLevel",
             rankUpSeason[1],
             rankUpSeason[2]
@@ -186,7 +181,7 @@ module.exports = class DailyClaim extends SlashCommand {
           await client.emit(
             "playerLevelUp",
             interaction,
-            timerData,
+            interaction.user,
             "accountLevel",
             rankUpAccount[1],
             rankUpAccount[2]
@@ -203,19 +198,19 @@ module.exports = class DailyClaim extends SlashCommand {
       });
     }
 
-    const onCooldown = new MessageEmbed()
+    const onCooldown = new EmbedBuilder()
       .setTitle(`⏰ You can't do that yet`)
-      .setColor(colours.DEFAULT)
+      .setColor(colors.DEFAULT as ColorResolvable)
       .setDescription(
         `You've already collected your daily login reward [Day: ${
           loginReward(currentStreak)[0]
         }]\n\nYou can collect it again <t:${Math.floor(
-          userData.dailyCooldown / 1000 + 86400
+          userData.dailyCooldown.getTime() / 1000 + 86400
         )}:R>.`
       )
       .setTimestamp();
 
-    if (Date.parse(userData.dailyCooldown) + 86400000 > Date.now())
+    if (userData.dailyCooldown.getTime() + 86400000 > Date.now())
       return interaction.reply({
         embeds: [onCooldown],
         ephemeral: true
@@ -228,9 +223,9 @@ module.exports = class DailyClaim extends SlashCommand {
             emojis.dunkelCoin
           }`;
 
-    const collectedReward = new MessageEmbed()
+    const collectedReward = new EmbedBuilder()
       .setTitle(`Daily Collected 💰`)
-      .setColor(colours.DEFAULT)
+      .setColor(colors.DEFAULT as ColorResolvable)
       .setDescription(
         `Collected your daily login reward [Day: ${
           loginReward(currentStreak)[0]
@@ -243,7 +238,7 @@ module.exports = class DailyClaim extends SlashCommand {
       dailyStreak: userData.dailyStreak + 1,
       dunkelCoins:
         loginReward(currentStreak)[2] != 0
-          ? userData.dunkelCoins + loginReward(currentStreak)[2]
+          ? userData.dunkelCoins + (loginReward(currentStreak)[2] as number)
           : userData.dunkelCoins
     });
 
@@ -251,12 +246,15 @@ module.exports = class DailyClaim extends SlashCommand {
       await timerData.updateOne({
         seasonXP:
           loginReward(currentStreak)[1] != 0
-            ? timerData.seasonXP + loginReward(currentStreak)[1]
-            : timerData.seasonXP,
-        accountXP:
+            ? timerData.seasonXP + (loginReward(currentStreak)[1] as number)
+            : timerData.seasonXP
+      });
+
+      await userData.updateOne({
+        RP:
           loginReward(currentStreak)[1] != 0
-            ? timerData.accountXP + loginReward(currentStreak)[1]
-            : timerData.accountXP
+            ? userData.RP + (loginReward(currentStreak)[1] as number)
+            : userData.RP
       });
 
       if (loginReward(currentStreak)[1] != 0) {
@@ -267,16 +265,16 @@ module.exports = class DailyClaim extends SlashCommand {
         );
 
         const rankUpAccount = checkRankAccount(
-          timerData.accountLevel,
-          timerData.accountXP,
-          timerData.accountXP + Number(loginReward(currentStreak)[1])
+          userData.Rank,
+          userData.RP,
+          userData.RP + Number(loginReward(currentStreak)[1])
         );
 
         if (rankUpSeason[0]) {
           await client.emit(
             "playerLevelUp",
             interaction,
-            timerData,
+            interaction.user,
             "seasonLevel",
             rankUpSeason[1],
             rankUpSeason[2]
@@ -287,7 +285,7 @@ module.exports = class DailyClaim extends SlashCommand {
           await client.emit(
             "playerLevelUp",
             interaction,
-            timerData,
+            interaction.user,
             "accountLevel",
             rankUpAccount[1],
             rankUpAccount[2]
@@ -298,7 +296,7 @@ module.exports = class DailyClaim extends SlashCommand {
       await userData.updateOne({
         extraTimerXP:
           loginReward(currentStreak)[1] != 0
-            ? userData.extraTimerXP + loginReward(currentStreak)[1]
+            ? userData.extraTimerXP + (loginReward(currentStreak)[1] as number)
             : userData.extraTimerXP
       });
     }
@@ -307,4 +305,4 @@ module.exports = class DailyClaim extends SlashCommand {
       embeds: [collectedReward]
     });
   }
-};
+}
