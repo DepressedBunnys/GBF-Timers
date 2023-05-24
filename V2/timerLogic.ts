@@ -69,12 +69,6 @@ export function loginReward(streak: number = 1): Array<number | string> {
 }
 
 /**
- *
- * @param {*} level [The user's new level]
- * @returns [Reward based off the user's level from a scale of 1-10 that resets every 10 levels]
- */
-
-/**
  * Calculate the reward based on the user's level
  * @param {number} level - The user's new level
  * @returns {Array<number>} - An array representing the reward based on the user's level from a scale of 1-10 that resets every 10 levels
@@ -172,9 +166,9 @@ export function checkRank(
  * @param {number} currentRP - The user's XP before any additions
  * @param {number} addedRP - The added XP rewarded
  * @returns {Array<boolean | number>} - An array with the following elements:
- * @returns {Array<boolean | number>[0]} - A boolean indicating if the user has ranked up
- * @returns {Array<boolean | number>[1]} - The number of level ups
- * @returns {Array<boolean | number>[2]} - The remaining XP that was extra
+ * @returns {Array<boolean>[0]} - A boolean indicating if the user has ranked up
+ * @returns {Array<number>[1]} - The number of level ups
+ * @returns {Array<number>[2]} - The remaining XP that was extra
  */
 export function checkRankAccount(
   currentRank: number,
