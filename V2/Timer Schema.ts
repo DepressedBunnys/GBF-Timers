@@ -12,6 +12,8 @@ interface ITimerData extends Document {
   numberOfStarts: number;
   timeSpent: number;
   longestSessionTime: number;
+  biggestSemester: number;
+  biggestSemesterName: string;
   sessionLengths: number[];
   lastSessionTime: number | null;
   lastSessionDate: Date | null;
@@ -55,6 +57,14 @@ const TimerSchema = new Schema<ITimerData>(
     longestSessionTime: {
       type: Number,
       default: 0
+    },
+    biggestSemester: {
+      type: Number,
+      default: 0
+    },
+    biggestSemesterName: {
+      type: String,
+      default: "No Data"
     },
     sessionLengths: {
       type: [Number],
