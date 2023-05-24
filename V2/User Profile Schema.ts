@@ -2,6 +2,12 @@ import { Schema, model, Document } from "mongoose";
 
 interface IUserProfileData extends Document {
   userID: string;
+  friends: [string];
+  characterProfile: {
+    characterName: string;
+    characterSex: string;
+  };
+  creationDate: Date;
   privateProfile: boolean;
   cash: number;
   bank: number;
@@ -9,15 +15,35 @@ interface IUserProfileData extends Document {
   totalEarned: number;
   RP: number;
   Rank: number;
-  badges: string[];
+  badges: {
+    levelHundred: boolean;
+  };
+  achievements: {
+    welcomeToSueLuz: boolean;
+  };
   dailyCooldown: Date | null;
   dailyStreak: number;
   extraTimerXP: number | null;
+  completedMissions: {
+    intro: boolean | false;
+    MeetRobin: boolean | false;
+    MojaveJob: boolean | false;
+  };
+  weapons: {
+    pistol: boolean;
+    uzi: boolean | false;
+  };
 }
 
 const UserProfileSchema = new Schema<IUserProfileData>(
   {
     userID: String,
+    creationDate: Date,
+    friends: [String],
+    characterProfile: {
+      characterName: String,
+      characterSex: String
+    },
     privateProfile: {
       type: Boolean,
       default: false
@@ -47,12 +73,23 @@ const UserProfileSchema = new Schema<IUserProfileData>(
       default: 1
     },
     badges: {
-      type: [String],
-      default: []
+      levelHundred: Boolean
+    },
+    achievements: {
+      welcomeToSueLuz: Boolean
+    },
+    weapons: {
+      pistol: Boolean,
+      uzi: Boolean
     },
     dailyCooldown: Date,
     dailyStreak: Number,
-    extraTimerXP: Number
+    extraTimerXP: Number,
+    completedMissions: {
+      intro: Boolean,
+      MeetRobin: Boolean,
+      MojaveJob: Boolean
+    }
   },
   {
     collection: "User Profile Data"
