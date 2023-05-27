@@ -204,3 +204,23 @@ export function checkRankAccount(
 
   return [hasRankedUp, addedLevels, remainingRP];
 }
+
+export function convertSeasonLevel(level: number): number {
+  return level * 500 + Math.round(level / 5) * 5;
+}
+
+export function calculateTotalSeasonXP(SeasonLevel: number): number {
+  let totalXP = 0;
+  for (let level = 1; level <= SeasonLevel; level++) {
+    totalXP += level * 400 + (level - 1) * 200 - 300;
+  }
+  return totalXP;
+}
+
+export function calculateTotalAccountRP(AccountRank: number): number {
+  let totalXP = 0;
+  for (let level = 1; level <= AccountRank; level++) {
+    totalXP += level * 800 + (level - 1) * 400 - 500;
+  }
+  return totalXP;
+}
