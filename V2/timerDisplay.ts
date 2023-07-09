@@ -1,4 +1,4 @@
-const SlashCommand = require("../../utils/slashCommands").default;
+import SlashCommand from "../../utils/slashCommands";
 
 import {
   CommandInteraction,
@@ -6,44 +6,46 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
-  Client,
   ColorResolvable,
   Interaction,
   ComponentType,
-  CommandInteractionOptionResolver
+  CommandInteractionOptionResolver,
+  User
 } from "discord.js";
 
 import colours from "../../GBF/GBFColor.json";
 import emojis from "../../GBF/GBFEmojis.json";
+import CommandLinks from "../../GBF/GBFCommands.json";
 
 import timerSchema from "../../schemas/User Schemas/Timer Schema";
-import userSchema from "../../schemas/User Schemas/User Profile Schema";
 
 import { msToTime, chunkAverage, twentyFourToTwelve } from "../../utils/Engine";
 
 import {
   xpRequired,
   xpRequiredAccount,
-  hoursRequired
+  hoursRequired,
+  convertSeasonLevel,
+  checkRankAccount,
+  calculateTotalSeasonXP
 } from "../../utils/TimerLogic";
 
 import fetch from "node-fetch";
+import { promises as fs } from "fs";
+import GBFClient from "../../handler/clienthandler";
+import { GBFUserProfileModel } from "../../schemas/User Schemas/User Profile Schema";
 
 interface IExecute {
-  client: Client;
+  client: GBFClient;
   interaction: CommandInteraction;
 }
 
 export default class BasicTimerUI extends SlashCommand {
-  constructor(client: Client) {
+  constructor(client: GBFClient) {
     super(client, {
       name: "timer",
       description: "Track your daily activites using GBF timers",
       category: "Timer",
-      userPermission: [],
-      botPermission: [],
-      cooldown: 0,
-      development: false,
       subcommands: {
         stats: {
           description: "Get the stats of the current tracking semester",
@@ -52,7 +54,7 @@ export default class BasicTimerUI extends SlashCommand {
               userID: interaction.user.id
             });
 
-            const userData = await userSchema.findOne({
+            const userData = await GBFUserProfileModel.findOne({
               userID: interaction.user.id
             });
 
@@ -282,7 +284,15 @@ export default class BasicTimerUI extends SlashCommand {
 
             // The main message that stores all of the information and the third quadrant | Longest session
 
-            const messageDescription: string = `• Total Semester Time: ${HRTotalTime} [${hrTotalTime} ${
+            const messageDescription: string = `• Lifetime Time: ${msToTime(
+              timerData.totalTime
+                ? (timerData.totalTime + timerData.timeSpent) * 1000
+                : timerData.timeSpent * 1000
+            )} [${
+              timerData.totalTime
+                ? (timerData.totalTime / 3600).toLocaleString()
+                : "0"
+            } Hours]\n• Total Semester Time: ${HRTotalTime} [${hrTotalTime} ${
               hrTotalTime == 1 ? "Hour" : "Hours"
             }]\n• Average Session Time: ${avgTotalTime} [${Math.round(
               rawTotalTime
@@ -323,7 +333,7 @@ export default class BasicTimerUI extends SlashCommand {
             ).toLocaleString()} Minutes]\n\n• Account Level: ${
               userData.Rank
             }\n• XP to reach level ${
-              userData.RP + 1
+              userData.Rank + 1
             }: ${userData.RP.toLocaleString()} / ${accountXPrequired.toLocaleString()}\n${accountProgressBar} [${percentageAccountComplete.toFixed(
               2
             )}%]\n• Estimated time till next account level up: ${Number(
@@ -542,6 +552,18 @@ export default class BasicTimerUI extends SlashCommand {
               userID: interaction.user.id
             });
 
+            const UserData = await GBFUserProfileModel.findOne({
+              userID: interaction.user.id
+            });
+
+            if (!UserData) {
+              const NewProfile = new GBFUserProfileModel({
+                userID: interaction.user.id
+              });
+
+              await NewProfile.save();
+            }
+
             const existingAccount = new EmbedBuilder()
               .setTitle(`${emojis.ERROR} You can't do that`)
               .setColor(colours.ERRORRED as ColorResolvable)
@@ -635,6 +657,10 @@ export default class BasicTimerUI extends SlashCommand {
               userID: interaction.user.id
             });
 
+            const UserData = await GBFUserProfileModel.findOne({
+              userID: interaction.user.id
+            });
+
             // Checking if the user does not have an account
 
             const noAccount = new EmbedBuilder()
@@ -642,7 +668,24 @@ export default class BasicTimerUI extends SlashCommand {
               .setColor(colours.ERRORRED as ColorResolvable)
               .setDescription(
                 `I couldn't find any data matching your user ID.\n\nCreate a new semester account using </timer registry:1068210539689414777>`
+              )
+              .setFooter({
+                text: `If you have a timer account, run an economy command and this message should no longer appear`
+              });
+
+            const UnableToRun = new EmbedBuilder()
+              .setTitle(`${emojis.ERROR} You can't do that`)
+              .setColor(colours.ERRORRED as ColorResolvable);
+
+            if (!UserData) {
+              UnableToRun.setDescription(
+                `You don't have a SueLuz account, create one using: ${CommandLinks.SueLuzRegister}`
               );
+              return interaction.reply({
+                embeds: [UnableToRun],
+                ephemeral: true
+              });
+            }
 
             if (!timerData || (timerData && !timerData.seasonName))
               return interaction.reply({
@@ -689,7 +732,10 @@ export default class BasicTimerUI extends SlashCommand {
               .setColor(colours.DEFAULT as ColorResolvable)
               .setDescription(
                 `Please use the buttons below to confirm or deny this action. [Semester reset, this includes semester XP]\n\nWe recommend using </timer stats:1068210539689414777> before restting.`
-              );
+              )
+              .setFooter({
+                text: `Your season level will be converted into XP if you reset`
+              });
 
             await interaction.reply({
               embeds: [warningMessage],
@@ -739,7 +785,9 @@ export default class BasicTimerUI extends SlashCommand {
                     `Your data has been deleted, to create a new semester use </timer registry:1068210539689414777>`
                   );
 
-                const semesterRecap: string = `• Total Time: ${msToTime(
+                const semesterRecap: string = `• Semester: ${
+                  timerData.seasonName
+                }\n• Total Time: ${msToTime(
                   timerData.timeSpent * 1000
                 )}\n• Number of Sessions: ${
                   timerData.numberOfStarts
@@ -747,17 +795,26 @@ export default class BasicTimerUI extends SlashCommand {
                   timerData.breakTime * 1000
                 )}\n• Number of Breaks: ${
                   timerData.totalBreaks
-                }\n\n• Semester Level: ${
+                }\n• Longest Session: ${msToTime(
+                  timerData.longestSessionTime * 1000
+                )}\n\n• Semester Level: ${
                   timerData.seasonLevel
-                }\n• Semester XP: ${timerData.seasonXP}`;
+                }\n• Total Semester XP Earned: ${(
+                  timerData.seasonXP +
+                  calculateTotalSeasonXP(timerData.seasonLevel)
+                ).toLocaleString()}`;
 
                 const semesterStats = new EmbedBuilder()
                   .setTitle(`${timerData.seasonName} Recap`)
                   .setColor(colours.DEFAULT as ColorResolvable)
                   .setDescription(`${semesterRecap}`)
                   .setFooter({
-                    text: `Good luck on your next journey! - GBF Team`
+                    text: `Good luck on your next journey! - GBF Team | A copy of your data will be sent to your via DMs`
                   });
+
+                const ConvertedXP =
+                  convertSeasonLevel(timerData.seasonLevel) +
+                  timerData.seasonXP;
 
                 // Deleting the data
 
@@ -776,13 +833,22 @@ export default class BasicTimerUI extends SlashCommand {
                         timerData.timeSpent * 1000
                       )}!`
                     )
-                    .setColor(colours.DEFAULT as ColorResolvable);
+                    .setColor(colours.DEFAULT as ColorResolvable)
+                    .setFooter({
+                      text: `You received ${ConvertedXP.toLocaleString()} bonus RP`
+                    });
 
                   interaction.channel.send({
                     content: `<@${interaction.user.id}>`,
                     embeds: [newLongestSemester]
                   });
                 }
+
+                await timerData.updateOne({
+                  totalTime: timerData.totalTime
+                    ? timerData.totalTime + timerData.timeSpent
+                    : timerData.timeSpent
+                });
 
                 await timerData.updateOne({
                   messageID: null,
@@ -805,6 +871,26 @@ export default class BasicTimerUI extends SlashCommand {
                   sessionTopic: null
                 });
 
+                const accountLevelUp = checkRankAccount(
+                  UserData.Rank,
+                  UserData.RP,
+                  ConvertedXP
+                );
+
+                await UserData.updateOne({
+                  RP: UserData.RP + ConvertedXP
+                });
+
+                if (accountLevelUp[0])
+                  client.emit(
+                    "playerLevelUp",
+                    interaction,
+                    interaction.user,
+                    "accountLevel",
+                    accountLevelUp[1],
+                    accountLevelUp[2]
+                  );
+
                 await interaction.followUp({
                   embeds: [semesterStats]
                 });
@@ -813,6 +899,46 @@ export default class BasicTimerUI extends SlashCommand {
                   embeds: [processBegin],
                   components: [confirmationButtonsD]
                 });
+
+                const DataMessage: string = JSON.stringify(timerData, null, 2);
+
+                function replaceSpaces(str: string): string {
+                  return str.replace(/ /g, "_");
+                }
+
+                async function sendFileToUser(
+                  user: User,
+                  timerData: any
+                ): Promise<void> {
+                  const DMChannel = await user.createDM();
+
+                  const MessageData = JSON.stringify(
+                    timerData,
+                    null,
+                    2
+                  ).replace(/\n/g, " ");
+
+                  const FileName = `${replaceSpaces(
+                    `${interaction.user.username} timer data.txt`
+                  )}`;
+
+                  await fs.writeFile(FileName, MessageData);
+
+                  await DMChannel.send({
+                    content: `Here's a copy of your data [⚡ Advanced ⚡]`,
+                    files: [{ attachment: FileName, name: FileName }]
+                  });
+
+                  await fs.unlink(FileName);
+                }
+
+                try {
+                  await sendFileToUser(interaction.user, DataMessage);
+                } catch (err) {
+                  interaction.channel.send({
+                    content: `<@${interaction.user.id}> I couldn't DM you your data`
+                  });
+                }
                 // Closing the collector
                 return collector.stop("308");
               }
@@ -822,7 +948,7 @@ export default class BasicTimerUI extends SlashCommand {
 
             collector.on("end", (collected, reason) => {
               // Ending the command and disabling the buttons
-              if (reason !== "308") return;
+              if (reason == "308") return;
               interaction.editReply({
                 content: `Timed out.`,
                 components: [confirmationButtonsD]
