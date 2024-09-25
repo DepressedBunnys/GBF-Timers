@@ -5,4 +5,5 @@ declare module "@heroicons/react/solid" {
   export const PlusIcon: React.FC<React.SVGProps<SVGSVGElement>>;
   export const ChevronDownIcon: React.FC<React.SVGProps<SVGSVGElement>>;
   export const PencilIcon: React.FC<React.SVGProps<SVGSVGElement>>;
+  export const TrashIcon: React.FC<React.SVGProps<SVGSVGElement>>;
 }

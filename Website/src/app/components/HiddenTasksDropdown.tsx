@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 interface HiddenTasksDropdownProps {
-  hiddenTasks: { id: string; title: string; description: string }[];
+  hiddenTasks: { id: string; title: string }[];
 }
 
 export default function HiddenTasksDropdown({
@@ -28,7 +28,7 @@ export default function HiddenTasksDropdown({
           <ul>
             {hiddenTasks.map((task) => (
               <li key={task.id} className="mb-2 dark:text-gray-200">
-                <strong>{task.title}</strong>: {task.description}
+                <strong>{task.title}</strong>
               </li>
             ))}
           </ul>

@@ -10,9 +10,11 @@
   },
   "dependencies": {
     "@heroicons/react": "^1.0.6",
+    "@types/react-router-dom": "^5.3.3",
     "next": "14.2.11",
     "react": "^18",
     "react-dom": "^18",
+    "react-router-dom": "^6.26.2",
     "uuid": "^10.0.0"
   },
   "devDependencies": {

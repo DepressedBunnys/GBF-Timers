@@ -6,23 +6,53 @@ import {
   MoonIcon,
   PlusIcon,
   ChevronDownIcon,
+  PencilIcon,
+  TrashIcon,
 } from "@heroicons/react/solid";
-import styles from "../styles/notes.module.css"
+import styles from "../styles/notes.module.css";
 import { v4 as uuidv4 } from "uuid";
 import CreateTaskModal from "./components/CreateTaskModal";
+import EditTaskModal from "./components/EditTaskModal";
+import DeleteTaskModal from "./components/DeleteTaskModal";
+import { Task } from "./models/Task";
 import { getNoteColor } from "./utils/colorUtil";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const router = useRouter();
+
+  const saveTasksToLocalStorage = (tasks: Task[]) => {
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+  };
+
+  const loadTasksFromLocalStorage = () => {
+    const savedTasks = localStorage.getItem("tasks");
+    if (savedTasks) {
+      const loadedTasks = JSON.parse(savedTasks);
+      const visibleTasks =
+        loadedTasks.length > 6 ? loadedTasks.slice(0, 6) : loadedTasks;
+      const hiddenTasks = loadedTasks.length > 6 ? loadedTasks.slice(6) : [];
+
+      setTasks(visibleTasks);
+      setHiddenTasks(hiddenTasks);
+    }
+  };
+
+  useEffect(() => {
+    loadTasksFromLocalStorage();
+  }, []);
+
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [tasks, setTasks] = useState<
-    { id: string; title: string; description: string }[]
-  >([]);
-  const [hiddenTasks, setHiddenTasks] = useState<
-    { id: string; title: string; description: string }[]
-  >([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [hiddenTasks, setHiddenTasks] = useState<Task[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskDescription, setNewTaskDescription] = useState("");
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const toggleDarkMode = () => {
     setIsDarkMode((prev) => !prev);
@@ -32,14 +62,26 @@ export default function Home() {
     setIsModalOpen(true);
   };
 
+  const handleEditTask = (task: Task) => {
+    setEditingTask(task);
+    setNewTaskTitle(task.title);
+    setNewTaskDescription(task.description);
+    setIsEditModalOpen(true);
+  };
+
   const handleCreateTask = () => {
     if (newTaskTitle.trim() === "") return;
 
-    const newTask = {
+    const newTask: Task = {
       id: uuidv4(),
-      title: newTaskTitle || `Task ${tasks.length + 1}`,
+      title: newTaskTitle,
+      name: newTaskTitle,
+      color: getNoteColor(tasks.length),
       description: newTaskDescription || "No Description",
     };
+
+    const updatedTasks =
+      tasks.length < 6 ? [...tasks, newTask] : [...tasks, newTask];
 
     if (tasks.length < 6) {
       setTasks((prevTasks) => [...prevTasks, newTask]);
@@ -47,9 +89,61 @@ export default function Home() {
       setHiddenTasks((prevHidden) => [...prevHidden, newTask]);
     }
 
+    saveTasksToLocalStorage(updatedTasks.filter((task) => task));
     setIsModalOpen(false);
     setNewTaskTitle("");
     setNewTaskDescription("");
+  };
+
+  const handleUpdateTask = (
+    title: string,
+    description: string,
+    color: string
+  ) => {
+    if (editingTask) {
+      const updatedTask = {
+        ...editingTask,
+        title,
+        description,
+        color,
+      };
+
+      setTasks((prevTasks) =>
+        prevTasks.map((task) =>
+          task.id === updatedTask.id ? updatedTask : task
+        )
+      );
+
+      const allTasks = [...tasks, ...hiddenTasks];
+      saveTasksToLocalStorage(allTasks);
+      setIsEditModalOpen(false);
+      setEditingTask(null);
+    }
+  };
+
+  const handleDeleteTask = (task: Task) => {
+    openDeleteModal(task);
+
+    setTasks((prevTasks) => prevTasks.filter((t) => t.id !== task.id));
+
+    if (hiddenTasks.length > 0) {
+      const taskToShow = hiddenTasks[0];
+      setTasks((prevTasks) => [...prevTasks, taskToShow]);
+      setHiddenTasks((prevHidden) => prevHidden.slice(1));
+    }
+
+    const allTasks = [...tasks, ...hiddenTasks];
+    saveTasksToLocalStorage(allTasks);
+    setIsDeleteModalOpen(false);
+  };
+
+  const openDeleteModal = (task: Task) => {
+    setTaskToDelete(task);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleTaskClick = (task: Task) => {
+    router.push(`/task/${task.id}`);
   };
 
   useEffect(() => {
@@ -136,19 +230,38 @@ export default function Home() {
       {/* Hidden Tasks Dropdown */}
       {hiddenTasks.length > 0 && (
         <div className="absolute top-4 left-4">
-          <button className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 dark:bg-gray-600 dark:text-gray-200">
+          <button
+            onClick={() => setIsDropdownOpen((prev) => !prev)}
+            className="flex items-center p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 dark:bg-gray-600 dark:text-gray-200"
+          >
             Hidden Tasks <ChevronDownIcon className="inline h-5 w-5 ml-1" />
           </button>
-          <ul className="bg-white dark:bg-gray-800 mt-2 rounded-md shadow-lg max-h-60 overflow-y-auto">
-            {hiddenTasks.map((task) => (
-              <li
-                key={task.id}
-                className="p-2 border-b border-gray-200 dark:border-gray-600 dark:text-gray-200"
-              >
-                {task.title}
-              </li>
-            ))}
-          </ul>
+          {isDropdownOpen && (
+            <ul className="bg-white dark:bg-gray-800 mt-2 rounded-md shadow-lg max-h-60 overflow-y-auto">
+              {hiddenTasks.map((task) => (
+                <li
+                  key={task.id}
+                  className="flex justify-between items-center p-3 border-b border-gray-200 dark:border-gray-600 text-lg text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition duration-200 ease-in-out"
+                >
+                  <strong className="font-semibold mr-2">{task.title}</strong>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => handleEditTask(task)}
+                      className="text-blue-500 hover:text-blue-600 dark:text-blue-300 dark:hover:text-blue-400"
+                    >
+                      <PencilIcon className="h-5 w-5" />
+                    </button>
+                    <button
+                      onClick={() => openDeleteModal(task)}
+                      className="text-red-500 hover:text-red-600 dark:text-red-300 dark:hover:text-red-400"
+                    >
+                      <TrashIcon className="h-5 w-5" />
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
 
@@ -180,26 +293,45 @@ export default function Home() {
 
         {/* Grid Container */}
         <div className="grid grid-cols-3 gap-6">
-          {tasks.map((task, index) => {
-            const noteColor = getNoteColor(index);
-            return (
-              <div
-                key={task.id}
-                className={`${styles.note} relative font-indie ${
-                  isDarkMode ? "text-gray-200" : "text-gray-900"
-                }`}
-                style={{
-                  backgroundColor: noteColor,
-                  color: "black",
+          {tasks.map((task) => (
+            <div
+              key={task.id}
+              className={`${styles.note} relative font-indie ${
+                isDarkMode ? "text-gray-200" : "text-gray-900"
+              }`}
+              style={{
+                backgroundColor: task.color || "#FFFFFF",
+                color: "black",
+              }}
+              onMouseMove={(e) => handleMouseMove(e, task.color || "#FDF6E3")}
+              onMouseLeave={handleMouseLeave}
+              onClick={() => handleTaskClick(task)}
+            >
+              <p className="text-lg font-semibold">{task.title}</p>
+              <p className="text-sm mt-2">{task.description}</p>
+
+              {/* Edit Icon */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleEditTask(task);
                 }}
-                onMouseMove={(e) => handleMouseMove(e, noteColor)}
-                onMouseLeave={handleMouseLeave}
+                className="absolute top-2 right-2 p-1 bg-gray-200 rounded-full hover:bg-gray-300"
               >
-                <p className="text-lg font-semibold">{task.title}</p>
-                <p className="text-sm mt-2">{task.description}</p>
-              </div>
-            );
-          })}
+                <PencilIcon className="h-5 w-5 text-gray-700" />
+              </button>
+              {/* Delete Icon */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openDeleteModal(task);
+                }}
+                className="absolute top-2 right-10 p-1 bg-gray-200 rounded-full hover:bg-red-300"
+              >
+                <TrashIcon className="h-5 w-5 text-gray-700" />
+              </button>
+            </div>
+          ))}
         </div>
 
         {/* Add Task Button under the Task Section */}
@@ -226,6 +358,29 @@ export default function Home() {
         handleCreateTask={handleCreateTask}
         closeModal={() => setIsModalOpen(false)}
       />
+
+      {/* Modal for Editing Task */}
+      <EditTaskModal
+        isModalOpen={isEditModalOpen}
+        taskTitle={editingTask?.title || ""}
+        taskDescription={editingTask?.description || ""}
+        taskColor={editingTask?.color || "#FDF6E3"}
+        handleEditTask={handleUpdateTask}
+        closeModal={() => {
+          setIsEditModalOpen(false);
+          setEditingTask(null);
+          setNewTaskTitle("");
+          setNewTaskDescription("");
+        }}
+      />
+
+      {isDeleteModalOpen && taskToDelete && (
+        <DeleteTaskModal
+          onClose={() => setIsDeleteModalOpen(false)}
+          onDelete={() => handleDeleteTask(taskToDelete)}
+          isOpen={isDeleteModalOpen}
+        />
+      )}
     </div>
   );
 }

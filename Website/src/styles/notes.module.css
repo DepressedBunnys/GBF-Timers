@@ -18,6 +18,12 @@
   background-color: rgba(255, 255, 255, 0.8);
   opacity: 0.95;
   transition: transform 0.2s;
+
+  /*To prevent the text from leaving the note*/
+  overflow: hidden;
+  overflow-wrap: break-word;
+  text-overflow: ellipsis;
+  white-space: normal;
 }
 
 .note:hover {

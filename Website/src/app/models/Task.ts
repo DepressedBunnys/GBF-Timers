@@ -1,6 +1,7 @@
 export interface Task {
-  id: string;
   title: string;
+  id: string;
+  name: string;
   description: string;
-  color: string;
+  color?: string;
 }

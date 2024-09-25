@@ -10,9 +10,7 @@ interface TaskCardProps {
 export default function TaskCard({ task, color, isDarkMode }: TaskCardProps) {
   return (
     <div
-      className={`${styles.note} relative font-indie ${
-        isDarkMode ? "text-black" : "text-black"
-      }`}
+      className={`${styles.note} relative font-indie ${"text-black"}`}
       style={{ backgroundColor: color }}
     >
       <div className={styles.pin}></div>
