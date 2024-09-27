@@ -17,6 +17,7 @@ import DeleteTaskModal from "./components/DeleteTaskModal";
 import { Task } from "./models/Task";
 import { getNoteColor } from "./utils/colorUtil";
 import { useRouter } from "next/navigation";
+import LoadingScreen from "./components/LoadingScreen";
 
 export default function Home() {
   const router = useRouter();
@@ -35,6 +36,7 @@ export default function Home() {
 
       setTasks(visibleTasks);
       setHiddenTasks(hiddenTasks);
+      setLoading(false);
     }
   };
 
@@ -42,7 +44,9 @@ export default function Home() {
     loadTasksFromLocalStorage();
   }, []);
 
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const [isDarkMode, setIsDarkMode] = useState(true);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [hiddenTasks, setHiddenTasks] = useState<Task[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -80,16 +84,19 @@ export default function Home() {
       description: newTaskDescription || "No Description",
     };
 
-    const updatedTasks =
-      tasks.length < 6 ? [...tasks, newTask] : [...tasks, newTask];
+    let updatedTasks = [...tasks, newTask];
+    let updatedHiddenTasks = [...hiddenTasks];
 
-    if (tasks.length < 6) {
-      setTasks((prevTasks) => [...prevTasks, newTask]);
+    if (tasks.length >= 6) {
+      updatedHiddenTasks = [...updatedHiddenTasks, newTask];
     } else {
-      setHiddenTasks((prevHidden) => [...prevHidden, newTask]);
+      updatedTasks = [...tasks, newTask];
     }
 
-    saveTasksToLocalStorage(updatedTasks.filter((task) => task));
+    setTasks(updatedTasks.slice(0, 6));
+    setHiddenTasks(updatedHiddenTasks);
+
+    saveTasksToLocalStorage([...updatedTasks, ...updatedHiddenTasks]);
     setIsModalOpen(false);
     setNewTaskTitle("");
     setNewTaskDescription("");
@@ -114,7 +121,13 @@ export default function Home() {
         )
       );
 
-      const allTasks = [...tasks, ...hiddenTasks];
+      const allTasks = [
+        ...tasks.map((task) =>
+          task.id === updatedTask.id ? updatedTask : task
+        ),
+        ...hiddenTasks,
+      ];
+
       saveTasksToLocalStorage(allTasks);
       setIsEditModalOpen(false);
       setEditingTask(null);
@@ -124,16 +137,23 @@ export default function Home() {
   const handleDeleteTask = (task: Task) => {
     openDeleteModal(task);
 
-    setTasks((prevTasks) => prevTasks.filter((t) => t.id !== task.id));
+    const newVisibleTasks = tasks.filter((t) => t.id !== task.id);
+    const newHiddenTasks = [...hiddenTasks];
 
-    if (hiddenTasks.length > 0) {
-      const taskToShow = hiddenTasks[0];
-      setTasks((prevTasks) => [...prevTasks, taskToShow]);
-      setHiddenTasks((prevHidden) => prevHidden.slice(1));
+    const taskIndex = hiddenTasks.findIndex((t) => t.id === task.id);
+    if (taskIndex !== -1) {
+      newHiddenTasks.splice(taskIndex, 1);
+    } else {
+      if (hiddenTasks.length > 0) {
+        const taskToShow = hiddenTasks[0];
+        newVisibleTasks.push(taskToShow);
+        newHiddenTasks.shift();
+      }
     }
 
-    const allTasks = [...tasks, ...hiddenTasks];
-    saveTasksToLocalStorage(allTasks);
+    setTasks(newVisibleTasks);
+    setHiddenTasks(newHiddenTasks);
+    saveTasksToLocalStorage([...newVisibleTasks, ...newHiddenTasks]);
     setIsDeleteModalOpen(false);
   };
 
@@ -202,6 +222,10 @@ export default function Home() {
     (note as HTMLElement).style.transform = `rotateX(0deg) rotateY(0deg)`;
     (note as HTMLElement).style.boxShadow = `none`;
   };
+
+  if (loading) {
+    return <LoadingScreen message="Loading GBF Timers" />;
+  }
 
   return (
     <div

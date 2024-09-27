@@ -1,51 +1,34 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 
-interface StarProps {
+interface StarsProps {
   isDarkMode: boolean;
 }
 
-const generateStarStyles = () => {
-  const size = Math.random() * 3;
-  const style = {
-    width: `${size}px`,
-    height: `${size}px`,
-    top: `${Math.random() * 100}vh`,
-    left: `${Math.random() * 100}vw`,
-    animationDuration: `${Math.random() * 5 + 5}s`,
-  };
-  return style;
-};
-
-export default function Stars({ isDarkMode }: StarProps) {
-  const [stars, setStars] = useState<JSX.Element[]>([]);
-
+export default function Stars({ isDarkMode }: StarsProps) {
   useEffect(() => {
-    const starCount = 100;
-    const newStars = [];
+    if (!isDarkMode) return;
 
-    for (let i = 0; i < starCount; i++) {
-      const style = generateStarStyles();
-      newStars.push(
-        <div
-          key={i}
-          className="star"
-          style={{
-            ...style,
-            position: "absolute",
-            backgroundColor: "white",
-            borderRadius: "50%",
-            boxShadow:
-              "0 0 10px rgba(255, 255, 255, 0.5), 0 0 20px rgba(255, 255, 255, 0.3)",
-            filter: "blur(1px)",
-          }}
-        />
-      );
-    }
+    const spawnStars = () => {
+      const starContainer = document.getElementById("star-container");
+      if (starContainer) {
+        const star = document.createElement("div");
+        star.classList.add("star");
 
-    setStars(newStars);
+        const randomX = Math.floor(Math.random() * window.innerWidth);
+        const randomY = Math.floor(Math.random() * window.innerHeight);
+        star.style.left = `${randomX}px`;
+        star.style.top = `${randomY}px`;
+
+        starContainer.appendChild(star);
+        setTimeout(() => star.remove(), 46000);
+      }
+    };
+
+    const starInterval = setInterval(spawnStars, 1000);
+    return () => clearInterval(starInterval);
   }, [isDarkMode]);
 
-  if (!isDarkMode) return null; 
-
-  return <div>{stars}</div>;
+  return isDarkMode ? (
+    <div id="star-container" className="absolute inset-0"></div>
+  ) : null;
 }

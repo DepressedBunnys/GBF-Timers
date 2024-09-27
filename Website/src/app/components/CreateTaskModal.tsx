@@ -75,7 +75,7 @@ export default function CreateTaskModal({
           Task Description:
         </label>
         <textarea
-          maxLength={150} 
+          maxLength={150}
           className="w-full p-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-teal-400"
           value={newTaskDescription}
           onChange={(e) => setNewTaskDescription(e.target.value)}

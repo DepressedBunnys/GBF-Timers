@@ -21,6 +21,7 @@ button {
 
 .dark {
     background: linear-gradient(to bottom, #000814, #001d3d, #002855);
+    color: white;
 }
 
 .star {
