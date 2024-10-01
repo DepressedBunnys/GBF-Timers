@@ -13,6 +13,8 @@ export default function TaskPage() {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [task, setTask] = useState<Task | null>(null);
   const [loading, setLoading] = useState(true);
+  const [startTime, setStartTime] = useState<Date | null>(null);
+  const [pauseCount, setPauseCount] = useState(0);
   const params = useParams();
   const { id } = params;
 
@@ -29,11 +31,21 @@ export default function TaskPage() {
       const loadedTasks: Task[] = JSON.parse(savedTasks);
       const foundTask = loadedTasks.find((task) => task.id === id);
 
-      if (foundTask) setTask(foundTask);
+      if (foundTask) {
+        setTask(foundTask);
+      }
     }
 
     setLoading(false);
   }, [id]);
+
+  const handleStartTask = () => {
+    setStartTime(new Date());
+  };
+
+  const handlePauseTask = () => {
+    setPauseCount((prevCount) => prevCount + 1);
+  };
 
   if (loading) {
     return <LoadingScreen message="Loading Task Data" />;
@@ -58,6 +70,37 @@ export default function TaskPage() {
       <DarkModeToggle isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
       <Stars isDarkMode={isDarkMode} />
 
+      {/* Left Side: Clock and Floating Analytics */}
+      <div className="absolute top-0 left-10 space-y-4">
+        <TimerClock isDarkMode={isDarkMode} />
+
+        {/* Floating Analytics with Gradient Style */}
+        <div className="text-left">
+          <h2
+            className={`text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 via-green-500 to-teal-400 dark:from-teal-300 dark:via-green-300 dark:to-blue-300`}
+          >
+            Task Analytics
+          </h2>
+          <p
+            className={`text-lg mt-2 ${
+              isDarkMode ? "text-green-300" : "text-green-800"
+            }`}
+          >
+            <strong>• Start Time:</strong>{" "}
+            {startTime ? startTime.toLocaleTimeString() : "N/A"}
+          </p>
+
+          <p
+            className={`text-lg mt-2 ${
+              isDarkMode ? "text-green-300" : "text-green-800"
+            }`}
+          >
+            <strong>• Number of Pauses:</strong> {pauseCount}{" "}
+            {/* Display pause count */}
+          </p>
+        </div>
+      </div>
+
       {/* Center the Title, Clock, and Description */}
       <header className="text-center mb-8">
         <h1
@@ -65,9 +108,6 @@ export default function TaskPage() {
         >
           {task.title}
         </h1>
-
-        {/* Timer Clock under the task title */}
-        <TimerClock isDarkMode={isDarkMode} />
 
         <p
           className={`text-lg mt-4 ${
@@ -80,7 +120,11 @@ export default function TaskPage() {
 
       {/* Center the Task Timer */}
       <div className="flex flex-col items-center justify-center flex-grow">
-        <TaskTimer isDarkMode={isDarkMode} />
+        <TaskTimer
+          isDarkMode={isDarkMode}
+          onStartTask={handleStartTask}
+          onPauseTask={handlePauseTask}
+        />
       </div>
 
       {/* Go Back Button */}

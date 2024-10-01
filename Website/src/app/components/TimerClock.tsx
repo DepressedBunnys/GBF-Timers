@@ -20,7 +20,7 @@ export default function TimerClock({ isDarkMode }: { isDarkMode: boolean }) {
 
   return (
     <div
-      className={`text-center text-4xl font-bold mt-8 ${
+      className={`text-center text-5xl font-bold mt-8 ${
         isDarkMode ? "text-green-300" : "text-green-800"
       }`}
     >

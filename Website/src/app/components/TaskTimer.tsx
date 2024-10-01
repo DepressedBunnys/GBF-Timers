@@ -4,66 +4,73 @@ import { useEffect, useState } from "react";
 
 interface TaskTimerProps {
   isDarkMode: boolean;
+  onStartTask: () => void;
+  onPauseTask: () => void;
 }
 
-export default function TaskTimer({ isDarkMode }: TaskTimerProps) {
+export default function TaskTimer({
+  isDarkMode,
+  onStartTask,
+  onPauseTask,
+}: TaskTimerProps) {
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [isTimerPaused, setIsTimerPaused] = useState(false);
-  const [elapsedTime, setElapsedTime] = useState(0);
+  const [startTime, setStartTime] = useState<number | null>(null);
   const [pausedTime, setPausedTime] = useState(0);
+  const [pauseStartTime, setPauseStartTime] = useState<number | null>(null);
+  const [elapsedTime, setElapsedTime] = useState(0);
   const [isTaskEnded, setIsTaskEnded] = useState(false);
   const [ringColor, setRingColor] = useState("white");
 
   useEffect(() => {
-    if (!isTimerActive) setRingColor(isDarkMode ? "white" : "blue");
-  }, [isDarkMode]);
+    if (isTimerActive && !isTimerPaused && !isTaskEnded && startTime) {
+      const updateElapsedTime = () => {
+        const now = Date.now();
+        setElapsedTime(Math.floor((now - startTime - pausedTime) / 1000));
+      };
+      const interval = setInterval(updateElapsedTime, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [isTimerActive, isTimerPaused, isTaskEnded, startTime, pausedTime]);
 
   useEffect(() => {
-    let timer: NodeJS.Timeout | null = null;
-    if (isTimerActive && !isTimerPaused && !isTaskEnded) {
-      timer = setInterval(() => {
-        setElapsedTime((prevTime) => prevTime + 1);
-      }, 1000);
+    if (isTimerPaused && pauseStartTime) {
+      const updatePausedTime = () => {
+        const now = Date.now();
+        setPausedTime(
+          (prevPausedTime) => prevPausedTime + (now - pauseStartTime)
+        );
+        setPauseStartTime(now);
+      };
+      const interval = setInterval(updatePausedTime, 1000);
+      return () => clearInterval(interval);
     }
-    return () => {
-      if (timer) clearInterval(timer);
-    };
-  }, [isTimerActive, isTimerPaused, isTaskEnded]);
-
-  useEffect(() => {
-    let pauseTimer: NodeJS.Timeout | null = null;
-    if (isTimerPaused) {
-      pauseTimer = setInterval(() => {
-        setPausedTime((prevPause) => prevPause + 1);
-      }, 1000);
-    }
-
-    return () => {
-      if (pauseTimer) clearInterval(pauseTimer);
-    };
-  }, [isTimerPaused]);
-
-  const formatTime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${hours.toString().padStart(2, "0")}:${minutes
-      .toString()
-      .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  };
+  }, [isTimerPaused, pauseStartTime]);
 
   const handleStartTask = () => {
     setIsTimerActive(true);
     setIsTimerPaused(false);
+    setStartTime(Date.now() - elapsedTime * 1000);
+    setPausedTime(0);
     setRingColor(isDarkMode ? "#2960ff" : "yellow");
+    onStartTask();
   };
 
   const handlePauseTask = () => {
     setIsTimerPaused(true);
+    setPauseStartTime(Date.now());
     setRingColor("red");
+    onPauseTask();
   };
 
   const handleResumeTask = () => {
+    if (pauseStartTime) {
+      const now = Date.now();
+      setPausedTime(
+        (prevPausedTime) => prevPausedTime + (now - pauseStartTime)
+      );
+    }
+    setPauseStartTime(null);
     setIsTimerPaused(false);
     setRingColor(isDarkMode ? "#2960ff" : "yellow");
   };
@@ -76,11 +83,19 @@ export default function TaskTimer({ isDarkMode }: TaskTimerProps) {
     setRingColor("white");
   };
 
+  const formatTime = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hours.toString().padStart(2, "0")}:${minutes
+      .toString()
+      .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
+
   return (
     <div className="text-center mt-0">
-      {/* Circular timer design */}
       <div
-        className={`relative mx-auto w-96 h-96 rounded-full flex flex-col items-center justify-center border-8 ${
+        className={`relative mx-auto w-80 h-80 rounded-full flex flex-col items-center justify-center border-8 ${
           isTimerPaused
             ? "border-red-600"
             : isDarkMode
@@ -102,19 +117,18 @@ export default function TaskTimer({ isDarkMode }: TaskTimerProps) {
           {formatTime(elapsedTime)}
         </div>
 
-        {/* Paused time display */}
+        {/* Display Paused Time */}
         {isTimerPaused && (
           <div
             className={`text-xl font-semibold ${
               isDarkMode ? "text-gray-300" : "text-gray-600"
             }`}
           >
-            {formatTime(pausedTime)}
+            {formatTime(Math.floor(pausedTime / 1000))}
           </div>
         )}
       </div>
 
-      {/* Timer control buttons */}
       <div className="flex space-x-4 mt-6 justify-center">
         {!isTaskEnded && !isTimerActive ? (
           <button

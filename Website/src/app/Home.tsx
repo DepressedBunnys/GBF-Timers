@@ -312,7 +312,9 @@ export default function Home() {
             isDarkMode ? "text-teal-300" : "text-blue-600"
           } mb-6 text-center`}
         >
-          Your Tasks
+          {tasks.length
+            ? "Your Tasks"
+            : "Create a task by clicking on the button below!"}
         </h2>
 
         {/* Grid Container */}
